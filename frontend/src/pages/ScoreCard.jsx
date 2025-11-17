@@ -62,6 +62,13 @@ const ScoreCard = () => {
     fetchApplicationDetails();
   }, [id]);
 
+  useEffect(() => {
+    // once application is fetched, load the scorecard
+    if (application && application.applicationNumber) {
+      fetchScoreCard(application.applicationNumber);
+    }
+  }, [application]);
+
   const fetchApplicationDetails = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -82,17 +89,62 @@ const ScoreCard = () => {
     }
   };
 
+  const fetchScoreCard = async (appNumber) => {
+    try {
+      const token = localStorage.getItem('token');
+      const resp = await axios.get(`http://localhost:5000/api/scorecard/${appNumber}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (resp.data.success && resp.data.score) {
+        const s = resp.data.score;
+        // map backend structure to UI-friendly scoreData
+        setScoreData({
+          finance: s.finance_score || {
+            financial_score: 0,
+            commercialization_potential: 0,
+            financial_risks: []
+          },
+          novelty: s.novelty_score || {
+            novelty_score: 0,
+            originality_score: 0,
+            similar_sources: [],
+            analysis: []
+          },
+          technical: s.technical_score || {
+            technical_score: 0,
+            approach_clarity_score: 0,
+            resource_availability_score: 0,
+            timeline_feasibility_score: 0,
+            technical_risks: []
+          },
+          relevance: s.relevance_score || {
+            relevance_score: 0,
+            industry_applicability_score: 0,
+            ministry_alignment_score: 0,
+            safety_environmental_impact_score: 0,
+            psu_adoptability_score: 0
+          }
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching scorecard:', err);
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/');
   };
 
   const calculateOverallScore = () => {
-    const total = scoreData.finance.financial_score + 
-                  scoreData.novelty.novelty_score + 
-                  scoreData.technical.technical_score + 
-                  scoreData.relevance.relevance_score;
-    return (total / 4).toFixed(1);
+    const values = [];
+    if (scoreData.finance?.financial_score) values.push(Number(scoreData.finance.financial_score));
+    if (scoreData.novelty?.novelty_score) values.push(Number(scoreData.novelty.novelty_score));
+    if (scoreData.technical?.technical_score) values.push(Number(scoreData.technical.technical_score));
+    if (scoreData.relevance?.relevance_score) values.push(Number(scoreData.relevance.relevance_score));
+    if (values.length === 0) return '0.0';
+    const avg = values.reduce((a,b)=>a+b,0) / values.length;
+    return avg.toFixed(1);
   };
 
   const pieData = [

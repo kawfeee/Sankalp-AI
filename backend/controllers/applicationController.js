@@ -1,5 +1,9 @@
 const Application = require('../models/Application');
+const ApplicationText = require('../models/ApplicationText');
 const { cloudinary } = require('../config/cloudinary');
+const { PDFParse } = require('pdf-parse');
+const axios = require('axios');
+const ScoreCard = require('../models/ScoreCard');
 
 // @desc    Create new application
 // @route   POST /api/applications
@@ -67,6 +71,143 @@ exports.createApplication = async (req, res) => {
         pendingApplications: 1
       }
     });
+
+    // Extract text from PDF and store in ApplicationText collection
+    try {
+      console.log('=== Starting PDF Text Extraction ===');
+      console.log('PDF URL:', req.file.path);
+      
+      // Download PDF from Cloudinary
+      console.log('Downloading PDF from Cloudinary...');
+      const response = await axios.get(req.file.path, {
+        responseType: 'arraybuffer'
+      });
+      
+      console.log('PDF downloaded, size:', response.data.byteLength, 'bytes');
+      const pdfBuffer = Buffer.from(response.data);
+      
+      // Parse PDF and extract text using PDFParse v2 API
+      console.log('Parsing PDF and extracting text...');
+      const parser = new PDFParse({ data: pdfBuffer });
+      const result = await parser.getText();
+      const extractedText = result.text;
+      
+      console.log('Text extraction successful!');
+      console.log('Extracted text length:', extractedText.length, 'characters');
+      console.log('First 100 characters:', extractedText.substring(0, 100));
+      
+      // Store extracted text in ApplicationText collection
+      console.log('Saving to ApplicationText collection...');
+      const textDoc = await ApplicationText.create({
+        applicationId: application._id,
+        applicationNumber: application.applicationNumber,
+        userId: req.user.id,
+        extractedText: extractedText,
+        pdfFileName: req.file.originalname,
+        textLength: extractedText.length
+      });
+      
+      console.log('✅ Extracted text stored successfully! Document ID:', textDoc._id);
+      console.log('=== PDF Text Extraction Complete ===');
+
+      // Orchestrate evaluation functions in background (run only once per application)
+      (async () => {
+        try {
+          const existing = await ScoreCard.findOne({ application_number: application.applicationNumber });
+          if (existing) {
+            console.log('ScoreCard already exists for', application.applicationNumber, ' — skipping scoring');
+            return;
+          }
+
+          // Load evaluation functions
+          const financeFn = require('../Evaluation_Functions/finance_test');
+          const technicalFn = require('../Evaluation_Functions/technical_test');
+          const relevanceFn = require('../Evaluation_Functions/relevance_test');
+
+          const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+          let financeRes = null;
+          try {
+            console.log('▶️ Running Finance scoring for', application.applicationNumber);
+            financeRes = await financeFn(application.applicationNumber);
+            console.log('Finance result:', financeRes);
+          } catch (e) {
+            console.error('Finance scoring failed:', e.message);
+          }
+
+          await wait(5000);
+
+          let technicalRes = null;
+          try {
+            console.log('▶️ Running Technical scoring for', application.applicationNumber);
+            technicalRes = await technicalFn(application.applicationNumber);
+            console.log('Technical result:', technicalRes);
+          } catch (e) {
+            console.error('Technical scoring failed:', e.message);
+          }
+
+          await wait(5000);
+
+          let relevanceRes = null;
+          try {
+            console.log('▶️ Running Relevance scoring for', application.applicationNumber);
+            relevanceRes = await relevanceFn(application.applicationNumber);
+            console.log('Relevance result:', relevanceRes);
+          } catch (e) {
+            console.error('Relevance scoring failed:', e.message);
+          }
+
+          // Build ScoreCard document per spec
+          const scoreObj = {
+            application_number: application.applicationNumber,
+            novelty_score: null,
+            technical_score: technicalRes ? {
+              technical_score: Number(technicalRes.technical_score) || null,
+              approach_clarity_score: Number(technicalRes.approach_clarity_score) || null,
+              resource_availability_score: Number(technicalRes.resource_availability_score) || null,
+              timeline_feasibility_score: Number(technicalRes.timeline_feasibility_score) || null,
+              technical_risks: Array.isArray(technicalRes.technical_risks) ? technicalRes.technical_risks : []
+            } : undefined,
+            finance_score: financeRes ? {
+              financial_score: Number(financeRes.financial_score) || null,
+              commercialization_potential: Number(financeRes.commercialization_potential) || null,
+              financial_risks: Array.isArray(financeRes.financial_risks) ? financeRes.financial_risks : []
+            } : undefined,
+            relevance_score: relevanceRes ? {
+              relevance_score: Number(relevanceRes.relevance_score) || null,
+              industry_applicability_score: Number(relevanceRes.industry_applicability_score) || null,
+              ministry_alignment_score: Number(relevanceRes.ministry_alignment_score) || null,
+              safety_environmental_impact_score: Number(relevanceRes.safety_environmental_impact_score) || null,
+              psu_adoptability_score: Number(relevanceRes.psu_adoptability_score) || null
+            } : undefined
+          };
+
+          // Compute overall score as average of available primary scores
+          const scoreVals = [];
+          if (scoreObj.finance_score && typeof scoreObj.finance_score.financial_score === 'number') scoreVals.push(scoreObj.finance_score.financial_score);
+          if (scoreObj.technical_score && typeof scoreObj.technical_score.technical_score === 'number') scoreVals.push(scoreObj.technical_score.technical_score);
+          if (scoreObj.relevance_score && typeof scoreObj.relevance_score.relevance_score === 'number') scoreVals.push(scoreObj.relevance_score.relevance_score);
+          const overall = scoreVals.length ? (scoreVals.reduce((a,b)=>a+b,0) / scoreVals.length) : null;
+          if (overall !== null) scoreObj.overall_score = Number(overall.toFixed(2));
+
+          // Upsert into ScoreCard collection
+          await ScoreCard.findOneAndUpdate(
+            { application_number: application.applicationNumber },
+            { $set: scoreObj },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+          );
+
+          console.log('✅ ScoreCard saved for', application.applicationNumber);
+        } catch (err) {
+          console.error('Scoring orchestration error:', err);
+        }
+      })();
+    } catch (extractError) {
+      console.error('❌ PDF text extraction error:', extractError.message);
+      console.error('Error stack:', extractError.stack);
+      // Don't fail the application submission if text extraction fails
+      // Just log the error and continue
+    }
     
     res.status(201).json({
       success: true,
