@@ -224,19 +224,31 @@ const ScoreCard = () => {
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
+      let currentY = 20;
+      
+      // Helper function to check space and add page if needed
+      const checkSpace = (needed = 15) => {
+        if (currentY + needed > pageHeight - 20) {
+          pdf.addPage();
+          currentY = 20;
+        }
+      };
       
       // Title
       pdf.setFontSize(20);
       pdf.setTextColor(139, 92, 246);
-      pdf.text('SCORE CARD REPORT', pageWidth / 2, 20, { align: 'center' });
+      pdf.text('SCORE CARD REPORT', pageWidth / 2, currentY, { align: 'center' });
+      currentY += 20;
       
       // Application Details
-      pdf.setFontSize(12);
+      checkSpace(50);
+      pdf.setFontSize(14);
       pdf.setTextColor(0, 0, 0);
-      pdf.text('Application Details', 15, 35);
+      pdf.text('Application Details', 15, currentY);
+      currentY += 10;
       
       autoTable(pdf, {
-        startY: 40,
+        startY: currentY,
         head: [['Field', 'Value']],
         body: [
           ['Application Number', application.applicationNumber],
@@ -250,15 +262,17 @@ const ScoreCard = () => {
         headStyles: { fillColor: [139, 92, 246] },
         margin: { left: 15, right: 15 }
       });
+      currentY = pdf.lastAutoTable.finalY + 15;
 
-      // Finance Score
-      let finalY = (pdf.lastAutoTable?.finalY || 40) + 15;
-      pdf.setFontSize(14);
+      // Finance Score Section
+      checkSpace(30);
+      pdf.setFontSize(16);
       pdf.setTextColor(59, 130, 246);
-      pdf.text('💰 Finance Score', 15, finalY);
+      pdf.text('Finance Score', 15, currentY);
+      currentY += 10;
       
       autoTable(pdf, {
-        startY: finalY + 5,
+        startY: currentY,
         head: [['Metric', 'Score']],
         body: [
           ['Financial Score', `${scoreData.finance.financial_score}/10`],
@@ -268,34 +282,34 @@ const ScoreCard = () => {
         headStyles: { fillColor: [59, 130, 246] },
         margin: { left: 15, right: 15 }
       });
+      currentY = pdf.lastAutoTable.finalY + 8;
 
       if (scoreData.finance.financial_risks && scoreData.finance.financial_risks.length > 0) {
-        finalY = (pdf.lastAutoTable?.finalY || finalY) + 5;
-        pdf.setFontSize(10);
+        checkSpace(20);
+        pdf.setFontSize(12);
         pdf.setTextColor(0, 0, 0);
-        pdf.text('Financial Risks:', 15, finalY);
-        scoreData.finance.financial_risks.forEach((risk, idx) => {
-          finalY += 5;
-          pdf.text(`• ${risk}`, 20, finalY);
+        pdf.text('Financial Risks:', 15, currentY);
+        currentY += 6;
+        
+        scoreData.finance.financial_risks.forEach((risk) => {
+          checkSpace(8);
+          pdf.setFontSize(10);
+          const splitText = pdf.splitTextToSize(`• ${risk}`, pageWidth - 40);
+          pdf.text(splitText, 20, currentY);
+          currentY += splitText.length * 4 + 2;
         });
+        currentY += 5;
       }
 
-      // Add new page if needed
-      const lastY = pdf.lastAutoTable?.finalY || finalY;
-      if (lastY > pageHeight - 60) {
-        pdf.addPage();
-        finalY = 20;
-      } else {
-        finalY = lastY + 15;
-      }
-
-      // Novelty Score
-      pdf.setFontSize(14);
+      // Novelty Score Section
+      checkSpace(30);
+      pdf.setFontSize(16);
       pdf.setTextColor(139, 92, 246);
-      pdf.text('💡 Novelty Score', 15, finalY);
+      pdf.text('Novelty Score', 15, currentY);
+      currentY += 10;
       
       autoTable(pdf, {
-        startY: finalY + 5,
+        startY: currentY,
         head: [['Metric', 'Value']],
         body: [
           ['Novelty Score', `${Number(scoreData.novelty.novelty_score).toFixed(1)}/10`],
@@ -305,23 +319,17 @@ const ScoreCard = () => {
         headStyles: { fillColor: [139, 92, 246] },
         margin: { left: 15, right: 15 }
       });
+      currentY = pdf.lastAutoTable.finalY + 15;
 
-      // Add new page if needed
-      const lastY2 = pdf.lastAutoTable?.finalY || finalY;
-      if (lastY2 > pageHeight - 60) {
-        pdf.addPage();
-        finalY = 20;
-      } else {
-        finalY = lastY2 + 15;
-      }
-
-      // Technical Score
-      pdf.setFontSize(14);
+      // Technical Score Section
+      checkSpace(40);
+      pdf.setFontSize(16);
       pdf.setTextColor(16, 185, 129);
-      pdf.text('🔧 Technical Score', 15, finalY);
+      pdf.text('Technical Score', 15, currentY);
+      currentY += 10;
       
       autoTable(pdf, {
-        startY: finalY + 5,
+        startY: currentY,
         head: [['Metric', 'Score']],
         body: [
           ['Technical Score', `${scoreData.technical.technical_score}/10`],
@@ -333,38 +341,34 @@ const ScoreCard = () => {
         headStyles: { fillColor: [16, 185, 129] },
         margin: { left: 15, right: 15 }
       });
+      currentY = pdf.lastAutoTable.finalY + 8;
 
       if (scoreData.technical.technical_risks && scoreData.technical.technical_risks.length > 0) {
-        finalY = (pdf.lastAutoTable?.finalY || finalY) + 5;
-        pdf.setFontSize(10);
+        checkSpace(20);
+        pdf.setFontSize(12);
         pdf.setTextColor(0, 0, 0);
-        pdf.text('Technical Risks:', 15, finalY);
-        scoreData.technical.technical_risks.forEach((risk, idx) => {
-          finalY += 5;
-          if (finalY > pageHeight - 20) {
-            pdf.addPage();
-            finalY = 20;
-          }
-          pdf.text(`• ${risk}`, 20, finalY);
+        pdf.text('Technical Risks:', 15, currentY);
+        currentY += 6;
+        
+        scoreData.technical.technical_risks.forEach((risk) => {
+          checkSpace(8);
+          pdf.setFontSize(10);
+          const splitText = pdf.splitTextToSize(`• ${risk}`, pageWidth - 40);
+          pdf.text(splitText, 20, currentY);
+          currentY += splitText.length * 4 + 2;
         });
+        currentY += 5;
       }
 
-      // Add new page if needed
-      const lastY3 = pdf.lastAutoTable?.finalY || finalY;
-      if (lastY3 > pageHeight - 60) {
-        pdf.addPage();
-        finalY = 20;
-      } else {
-        finalY = lastY3 + 15;
-      }
-
-      // Relevance Score
-      pdf.setFontSize(14);
+      // Relevance Score Section
+      checkSpace(40);
+      pdf.setFontSize(16);
       pdf.setTextColor(245, 158, 11);
-      pdf.text('🎯 Relevance Score', 15, finalY);
+      pdf.text('Relevance Score', 15, currentY);
+      currentY += 10;
       
       autoTable(pdf, {
-        startY: finalY + 5,
+        startY: currentY,
         head: [['Metric', 'Score']],
         body: [
           ['Relevance Score', `${scoreData.relevance.relevance_score}/10`],
@@ -378,7 +382,7 @@ const ScoreCard = () => {
         margin: { left: 15, right: 15 }
       });
 
-      // Footer
+      // Footer on all pages
       const totalPages = pdf.internal.getNumberOfPages();
       for (let i = 1; i <= totalPages; i++) {
         pdf.setPage(i);
