@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Navbar from './components/Navbar'
 import LandingPage from './components/LandingPage'
+import HomePage from './pages/HomePage'
 import EvaluatorLogin from './pages/EvaluatorLogin'
 import ApplicantLogin from './pages/ApplicantLogin'
 import EvaluatorSignup from './pages/EvaluatorSignup'
@@ -52,7 +53,7 @@ function App() {
       <AuthProvider>
         <div className="w-full min-h-screen">
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<HomePage />} />
             <Route path="/login/evaluator" element={<EvaluatorLogin />} />
             <Route path="/login/applicant" element={<ApplicantLogin />} />
             <Route path="/signup/evaluator" element={<EvaluatorSignup />} />
