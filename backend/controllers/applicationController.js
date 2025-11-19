@@ -123,6 +123,7 @@ exports.createApplication = async (req, res) => {
           const financeFn = require('../Evaluation_Functions/finance_test');
           const technicalFn = require('../Evaluation_Functions/technical_test');
           const relevanceFn = require('../Evaluation_Functions/relevance_test');
+          const noveltyFn = require('../Evaluation_Functions/novelty_test');
 
           const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -157,10 +158,26 @@ exports.createApplication = async (req, res) => {
             console.error('Relevance scoring failed:', e.message);
           }
 
+          await wait(5000);
+
+          let noveltyRes = null;
+          try {
+            console.log('▶️ Running Novelty scoring for', application.applicationNumber);
+            noveltyRes = await noveltyFn(application.applicationNumber);
+            console.log('Novelty result:', noveltyRes);
+          } catch (e) {
+            console.error('Novelty scoring failed:', e.message);
+          }
+
           // Build ScoreCard document per spec
           const scoreObj = {
             application_number: application.applicationNumber,
-            novelty_score: null,
+            novelty_score: noveltyRes ? {
+              application_number: noveltyRes.application_number || application.applicationNumber,
+              novelty_score: Number(noveltyRes.novelty_score) ? Number(noveltyRes.novelty_score) / 10 : null,
+              total_proposals_checked: Number(noveltyRes.total_proposals_checked) || 0,
+              similar_proposals: Array.isArray(noveltyRes.similar_proposals) ? noveltyRes.similar_proposals : []
+            } : null,
             technical_score: technicalRes ? {
               technical_score: Number(technicalRes.technical_score) || null,
               approach_clarity_score: Number(technicalRes.approach_clarity_score) || null,
@@ -182,10 +199,11 @@ exports.createApplication = async (req, res) => {
             } : undefined
           };
 
-          // Compute overall score as average of available primary scores
+          // Compute overall score as average of available primary scores (including novelty)
           const scoreVals = [];
           if (scoreObj.finance_score && typeof scoreObj.finance_score.financial_score === 'number') scoreVals.push(scoreObj.finance_score.financial_score);
           if (scoreObj.technical_score && typeof scoreObj.technical_score.technical_score === 'number') scoreVals.push(scoreObj.technical_score.technical_score);
+          if (scoreObj.novelty_score && typeof scoreObj.novelty_score.novelty_score === 'number') scoreVals.push(scoreObj.novelty_score.novelty_score);
           if (scoreObj.relevance_score && typeof scoreObj.relevance_score.relevance_score === 'number') scoreVals.push(scoreObj.relevance_score.relevance_score);
           const overall = scoreVals.length ? (scoreVals.reduce((a,b)=>a+b,0) / scoreVals.length) : null;
           if (overall !== null) scoreObj.overall_score = Number(overall.toFixed(2));

@@ -21,5 +21,6 @@ router.delete('/:id', protect, restrictTo('applicant'), deleteApplication);
 // Evaluator routes
 router.get('/all/list', protect, restrictTo('evaluator'), getAllApplications);
 router.patch('/:id/status', protect, restrictTo('evaluator'), updateApplicationStatus);
+router.put('/:id/status', protect, restrictTo('evaluator'), updateApplicationStatus);
 
 module.exports = router;

@@ -33,7 +33,9 @@ const ScoreCardSchema = new mongoose.Schema({
     psu_adoptability_score: Number
   },
   overall_score: { type: Number, default: null },
-  createdAt: { type: Date, default: Date.now }
+  evaluator_remarks: { type: String, default: '' },
+  createdAt: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('ScoreCard', ScoreCardSchema);
