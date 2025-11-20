@@ -7,6 +7,7 @@ import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import { ArrowLeft, Home, List, LogOut, Edit, Download, DollarSign, Lightbulb, Wrench, Target, PieChart, Loader2, AlertCircle, CheckCircle, X, FileText, Sparkles, Mic } from 'lucide-react';
 import NationalEmblem from '../assets/National Emblem.png';
+import VoiceAgentLogo from '../assets/VoiceAgentLogo.png';
 
 const ScoreCard = () => {
   const { id } = useParams();
@@ -32,6 +33,9 @@ const ScoreCard = () => {
   const [voiceCallId, setVoiceCallId] = useState(null);
   const [voiceLoading, setVoiceLoading] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState('');
+  const [currentTranscript, setCurrentTranscript] = useState('');
+  const [assistantResponse, setAssistantResponse] = useState('');
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   // Mock score data (will be replaced with real backend data)
   const [scoreData, setScoreData] = useState({
@@ -90,6 +94,18 @@ const ScoreCard = () => {
       fetchScoreCard(application.applicationNumber);
     }
   }, [application]);
+
+  // Add keyboard listener for ESC key to close voice assistant
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (e.key === 'Escape' && isVoiceActive) {
+        handleStopVoiceAssistant();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [isVoiceActive]);
 
   const fetchApplicationDetails = async () => {
     try {
@@ -366,12 +382,10 @@ const ScoreCard = () => {
       const contextMessage = `You are the SankalpAI Evaluation Assistant. You help evaluators analyze R&D proposals for the Ministry of Coal, Government of India.
 
 CRITICAL INSTRUCTIONS:
-- Answer ONLY questions related to this proposal evaluation
 - Use ONLY the provided proposal text and scorecard data below
 - Do NOT make assumptions or add external information
 - Do NOT hallucinate or invent facts
 - Be concise, professional, and direct in your responses
-- If asked anything unrelated to this proposal evaluation, respond: "Sorry, I can't help you with that. I can help you only regarding the Evaluation of the Proposal."
 
 PROPOSAL DETAILS:
 Application Number: ${application.applicationNumber}
@@ -419,6 +433,36 @@ Answer questions based ONLY on the above information. Do not add external knowle
       // Initialize Vapi with your public key
       const vapi = new Vapi('4fd226b5-770c-4843-8d6f-165fa39f71c6');
       
+      // Set up event listeners for transcripts
+      vapi.on('speech-start', () => {
+        setIsSpeaking(true);
+      });
+
+      vapi.on('speech-end', () => {
+        setIsSpeaking(false);
+      });
+
+      vapi.on('message', (message) => {
+        if (message.type === 'transcript' && message.transcriptType === 'partial') {
+          setCurrentTranscript(message.transcript);
+        } else if (message.type === 'transcript' && message.transcriptType === 'final') {
+          setCurrentTranscript(message.transcript);
+        }
+      });
+
+      vapi.on('call-start', () => {
+        setIsVoiceActive(true);
+        setVoiceStatus('Voice assistant ready! Ask questions about this proposal.');
+      });
+
+      vapi.on('call-end', () => {
+        setIsVoiceActive(false);
+        setCurrentTranscript('');
+        setAssistantResponse('');
+        setIsSpeaking(false);
+        window.vapiInstance = null;
+      });
+
       // Start the call with your assistant and context
       await vapi.start('45cca787-5a73-4423-80b1-e94908368397', {
         transcriber: {
@@ -442,7 +486,6 @@ Answer questions based ONLY on the above information. Do not add external knowle
       
       setIsVoiceActive(true);
       setVoiceStatus('Voice assistant ready! Ask questions about this proposal.');
-      alert('Voice Assistant started! You can now ask questions about this proposal evaluation.');
       
       // Store vapi instance for stopping later
       window.vapiInstance = vapi;
@@ -469,13 +512,18 @@ Answer questions based ONLY on the above information. Do not add external knowle
       setIsVoiceActive(false);
       setVoiceCallId(null);
       setVoiceStatus('');
-      alert('Voice Assistant stopped.');
+      setCurrentTranscript('');
+      setAssistantResponse('');
+      setIsSpeaking(false);
     } catch (error) {
       console.error('Error stopping voice assistant:', error);
       // Clean up state even if there's an error
       setIsVoiceActive(false);
       setVoiceCallId(null);
       setVoiceStatus('');
+      setCurrentTranscript('');
+      setAssistantResponse('');
+      setIsSpeaking(false);
       window.vapiInstance = null;
     }
   };
@@ -824,20 +872,6 @@ Answer questions based ONLY on the above information. Do not add external knowle
               >
                 <Edit className="w-5 h-5" />
                 Evaluate
-              </button>
-            )}
-            {user.role === 'evaluator' && (
-              <button
-                onClick={isVoiceActive ? handleStopVoiceAssistant : handleStartVoiceAssistant}
-                disabled={voiceLoading}
-                className={`px-6 py-3 rounded-xl font-semibold transition-all hover:shadow-lg flex items-center gap-2 ${
-                  isVoiceActive 
-                    ? 'bg-red-600 text-white hover:bg-red-700' 
-                    : 'bg-green-600 text-white hover:bg-green-700'
-                } ${voiceLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                <Mic className="w-5 h-5" />
-                {voiceLoading ? 'Starting...' : (isVoiceActive ? 'Stop Voice Assistant' : 'Start Voice Assistant')}
               </button>
             )}
             <button
@@ -1647,6 +1681,168 @@ Answer questions based ONLY on the above information. Do not add external knowle
           </div>
         </div>
       )}
+
+      {/* Floating Voice Assistant Button - Only for Evaluators */}
+      {user.role === 'evaluator' && (
+        <button
+          onClick={isVoiceActive ? handleStopVoiceAssistant : handleStartVoiceAssistant}
+          disabled={voiceLoading}
+          className={`fixed bottom-8 right-8 z-50 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 ${
+            voiceLoading ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-red-500/50'
+          } ${isVoiceActive ? 'animate-pulse' : ''}`}
+          style={{
+            width: '80px',
+            height: '80px',
+            padding: '0'
+          }}
+        >
+          <img 
+            src={VoiceAgentLogo} 
+            alt="Voice Assistant" 
+            className="w-full h-full object-contain rounded-full"
+            style={{
+              filter: isVoiceActive ? 'drop-shadow(0 0 20px rgba(239, 68, 68, 0.8))' : 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))'
+            }}
+          />
+          {voiceLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full">
+              <Loader2 className="w-8 h-8 text-white animate-spin" />
+            </div>
+          )}
+        </button>
+      )}
+
+      {/* Transcript Window with Glassmorphism - Only when conversation is active */}
+      {isVoiceActive && (
+        <div 
+          className="fixed bottom-28 left-1/2 transform -translate-x-1/2 z-40 transition-all duration-500 ease-out"
+          style={{
+            width: '90%',
+            maxWidth: '800px',
+            animation: 'slideUp 0.5s ease-out'
+          }}
+        >
+          <div 
+            className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              boxShadow: '0 8px 32px 0 rgba(239, 68, 68, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.2)'
+            }}
+          >
+            <div className="p-6">
+              {/* Header with Animated Voice Icon */}
+              <div className="flex items-center gap-4 mb-4 pb-4 border-b border-gray-200">
+                <div className="relative">
+                  {/* Animated Voice Wave */}
+                  {isSpeaking && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="flex gap-1">
+                        {[...Array(4)].map((_, i) => (
+                          <div
+                            key={i}
+                            className="w-1 bg-red-500 rounded-full animate-bounce"
+                            style={{
+                              height: '20px',
+                              animationDelay: `${i * 0.1}s`,
+                              animationDuration: '0.6s'
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                    isSpeaking 
+                      ? 'bg-red-100 border-2 border-red-500' 
+                      : 'bg-gray-100 border-2 border-gray-300'
+                  } transition-all duration-300`}>
+                    <Mic className={`w-6 h-6 ${isSpeaking ? 'text-red-500' : 'text-gray-700'}`} />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-gray-900 font-semibold text-lg">Voice Assistant Active</h3>
+                  <p className="text-gray-600 text-sm">
+                    {isSpeaking ? 'Speaking...' : 'Listening...'}
+                  </p>
+                </div>
+                <button
+                  onClick={handleStopVoiceAssistant}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-all"
+                >
+                  <X className="w-5 h-5 text-gray-700" />
+                </button>
+              </div>
+
+              {/* Transcript Display */}
+              <div className="space-y-3 max-h-40 overflow-y-auto custom-scrollbar">
+                {currentTranscript && (
+                  <div className="bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-gray-200">
+                    <p className="text-xs text-gray-600 mb-1 font-semibold">You:</p>
+                    <p className="text-gray-900 text-sm leading-relaxed font-medium">{currentTranscript}</p>
+                  </div>
+                )}
+                
+                {!currentTranscript && !isSpeaking && (
+                  <div className="text-center py-8">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/30 rounded-full border border-gray-200">
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                      <p className="text-gray-700 text-sm font-medium">Start speaking...</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Status Indicator */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${
+                      isSpeaking ? 'bg-red-500 animate-pulse' : 'bg-green-500'
+                    }`} />
+                    <span className="text-gray-700 text-xs font-medium">
+                      {voiceStatus || 'Ready to help with this proposal'}
+                    </span>
+                  </div>
+                  <span className="text-gray-600 text-xs">Press ESC to close</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        @keyframes slideUp {
+          from {
+            transform: translate(-50%, 100%);
+            opacity: 0;
+          }
+          to {
+            transform: translate(-50%, 0);
+            opacity: 1;
+          }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(239, 68, 68, 0.5);
+          border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(239, 68, 68, 0.7);
+        }
+      `}</style>
     </div>
   );
 };
