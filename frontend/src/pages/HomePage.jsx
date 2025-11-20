@@ -1,18 +1,75 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
+import NationalEmblem from '../assets/National Emblem.png';
+
+// Custom Next Arrow
+const NextArrow = ({ onClick }) => {
+  return (
+    <div
+      className="absolute right-4 top-1/2 -translate-y-1/2 z-20 cursor-pointer bg-white/30 hover:bg-white/50 backdrop-blur-sm rounded-full p-3 transition-all duration-300 group"
+      onClick={onClick}
+    >
+      <svg
+        className="w-8 h-8 text-black group-hover:scale-110 transition-transform"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" />
+      </svg>
+    </div>
+  );
+};
+
+// Custom Previous Arrow
+const PrevArrow = ({ onClick }) => {
+  return (
+    <div
+      className="absolute left-4 top-1/2 -translate-y-1/2 z-20 cursor-pointer bg-white/30 hover:bg-white/50 backdrop-blur-sm rounded-full p-3 transition-all duration-300 group"
+      onClick={onClick}
+    >
+      <svg
+        className="w-8 h-8 text-black group-hover:scale-110 transition-transform"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7" />
+      </svg>
+    </div>
+  );
+};
 
 const HomePage = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Carousel images - using public folder for better reliability
+  // Carousel images
   const carouselImages = [
     { src: '/Caro1.png', alt: 'Coal Innovation Slide 1' },
     { src: '/Caro2.png', alt: 'Energy Technology Slide 2' },
     { src: '/Caro3.png', alt: 'Research Development Slide 3' }
   ];
+
+  // React Slick settings
+  const sliderSettings = {
+    dots: true,
+    infinite: true,
+    speed: 800,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 3000,
+    pauseOnHover: true,
+    arrows: true,
+    nextArrow: <NextArrow />,
+    prevArrow: <PrevArrow />,
+    cssEase: 'ease-in-out'
+  };
 
   // If user is logged in, redirect to appropriate dashboard
   useEffect(() => {
@@ -24,22 +81,6 @@ const HomePage = () => {
       }
     }
   }, [user, navigate]);
-
-  // Debug: Log images to console
-  useEffect(() => {
-    console.log('Carousel images:', carouselImages);
-    carouselImages.forEach((img, idx) => {
-      console.log(`Image ${idx + 1}:`, img.src);
-    });
-  }, []);
-
-  // Auto-advance carousel
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [carouselImages.length]);
 
   // Don't render anything if user is logged in (will redirect)
   if (user) {
@@ -105,10 +146,12 @@ const HomePage = () => {
           <div className="flex justify-between items-center h-16">
             {/* Left Side - Indian Emblem and Ministry */}
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
-                </svg>
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1">
+                <img 
+                  src={NationalEmblem} 
+                  alt="National Emblem of India" 
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-white">Ministry of Coal</h1>
@@ -120,20 +163,20 @@ const HomePage = () => {
             <div className="hidden md:flex space-x-8 pl-10">
               <button 
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="text-white hover:text-red-200 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-white hover:text-red-500 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Home
               </button>
               <button 
                 onClick={() => scrollToSection('process')}
-                className="text-white hover:text-red-200 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-white hover:text-red-500 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Process
               </button>
               <a 
                 href="/proposal-format.pdf" 
                 download 
-                className="text-white hover:text-red-200 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-white hover:text-red-500 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Format
               </a>
@@ -143,7 +186,7 @@ const HomePage = () => {
             <div className="flex items-center space-x-4">
               <Link
                 to="/login/applicant"
-                className="text-white hover:text-red-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="text-white hover:text-red-500 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
               >
                 Applicant Login
               </Link>
@@ -159,57 +202,20 @@ const HomePage = () => {
       </nav>
 
       {/* Wide Carousel */}
-      <div className="relative h-[600px] overflow-hidden">
-        {carouselImages.map((imageObj, index) => (
-          <div
-            key={index}
-            className={`absolute inset-0 transition-opacity duration-1000 ${
-              index === currentSlide ? 'opacity-100' : 'opacity-0'
-            }`}
-          >
-            <img
-              src={imageObj.src}
-              alt={imageObj.alt}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                console.error('Image failed to load:', imageObj.src);
-                console.error('Full error:', e);
-                // Show red background as fallback
-                e.target.style.backgroundColor = '#dc2626';
-                e.target.style.minHeight = '600px';
-              }}
-              onLoad={() => console.log('✅ Image loaded successfully:', imageObj.src)}
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-          </div>
-        ))}
-        
-        {/* Carousel Content Overlay */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center text-white px-4">
-            <h1 className="text-6xl font-bold mb-4">Sankalp AI</h1>
-            <p className="text-2xl mb-8">Empowering Innovation in Coal & Energy Sector</p>
-            <Link
-              to="/signup/applicant"
-              className="bg-red-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-red-700 transition-colors inline-block"
-            >
-              Submit Your Proposal
-            </Link>
-          </div>
-        </div>
-
-        {/* Carousel Indicators */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-          {carouselImages.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
-              className={`w-3 h-3 rounded-full transition-colors ${
-                index === currentSlide ? 'bg-white' : 'bg-white bg-opacity-50'
-              }`}
-            />
+      <div className="relative h-[450px] overflow-hidden carousel-container">
+        <Slider {...sliderSettings}>
+          {carouselImages.map((imageObj, index) => (
+            <div key={index} className="relative">
+              <div className="h-[450px]">
+                <img
+                  src={imageObj.src}
+                  alt={imageObj.alt}
+                  className="w-full h-[450px] object-cover"
+                />
+              </div>
+            </div>
           ))}
-        </div>
+        </Slider>
       </div>
 
       {/* Hero Text and 4 Cards */}

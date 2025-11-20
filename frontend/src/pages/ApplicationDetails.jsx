@@ -112,7 +112,7 @@ const ApplicationDetails = () => {
             <div className="flex items-center gap-4">
               <Link
                 to="/applicant/dashboard"
-                className="px-6 py-2 rounded-xl font-semibold hover:bg-white hover:bg-opacity-20 transition-all"
+                className="px-6 py-2 rounded-xl font-semibold hover:bg-white hover:text-red-500 hover:bg-opacity-20 transition-all"
               >
                 Dashboard
               </Link>

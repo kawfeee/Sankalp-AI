@@ -148,7 +148,7 @@ const SubmitApplication = () => {
             <div className="flex gap-4">
               <Link
                 to="/applicant/dashboard"
-                className="px-6 py-2 rounded-lg font-semibold hover:bg-white hover:bg-opacity-20 transition-all"
+                className="px-6 py-2 rounded-lg font-semibold hover:bg-white hover:text-blue-500 hover:bg-opacity-20 transition-all"
               >
                 Dashboard
               </Link>

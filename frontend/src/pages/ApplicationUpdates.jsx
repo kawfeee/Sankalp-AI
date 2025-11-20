@@ -371,14 +371,14 @@ const ApplicationUpdates = () => {
             <div className="flex items-center gap-4">
               <button
                 onClick={() => navigate('/applicant/dashboard')}
-                className="px-6 py-2 rounded-xl font-semibold hover:bg-white hover:bg-opacity-20 transition-all flex items-center gap-2"
+                className="px-6 py-2 rounded-xl font-semibold hover:bg-white hover:text-red-500 hover:bg-opacity-20 transition-all flex items-center gap-2"
               >
                 <ArrowLeft className="w-5 h-5" />
                 Back to Dashboard
               </button>
               <Link
                 to="/applicant/dashboard"
-                className="px-6 py-2 rounded-xl font-semibold hover:bg-white hover:bg-opacity-20 transition-all flex items-center gap-2"
+                className="px-6 py-2 rounded-xl font-semibold hover:bg-white hover:text-red-500 hover:bg-opacity-20 transition-all flex items-center gap-2"
               >
                 <Home className="w-5 h-5" />
                 Dashboard

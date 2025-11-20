@@ -812,14 +812,14 @@ Answer questions based ONLY on the above information. Do not add external knowle
             <div className="flex items-center gap-4">
               <Link
                 to="/evaluator/dashboard"
-                className="px-6 py-2 rounded-xl font-semibold hover:bg-white hover:bg-opacity-20 transition-all flex items-center gap-2"
+                className="px-6 py-2 rounded-xl font-semibold hover:bg-white hover:text-red-500 hover:bg-opacity-20 transition-all flex items-center gap-2"
               >
                 <Home className="w-5 h-5" />
                 Dashboard
               </Link>
               <Link
                 to="/evaluator/applications"
-                className="px-6 py-2 rounded-xl font-semibold hover:bg-white hover:bg-opacity-20 transition-all flex items-center gap-2"
+                className="px-6 py-2 rounded-xl font-semibold hover:bg-white hover:text-red-500 hover:bg-opacity-20 transition-all flex items-center gap-2"
               >
                 <List className="w-5 h-5" />
                 All Applications
