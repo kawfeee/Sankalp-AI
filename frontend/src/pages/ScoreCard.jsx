@@ -5,7 +5,7 @@ import axios from 'axios';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
-import { ArrowLeft, Home, List, LogOut, Edit, Download, DollarSign, Lightbulb, Wrench, Target, PieChart, Loader2, AlertCircle, CheckCircle, X, FileText, Sparkles } from 'lucide-react';
+import { ArrowLeft, Home, List, LogOut, Edit, Download, DollarSign, Lightbulb, Wrench, Target, PieChart, Loader2, AlertCircle, CheckCircle, X, FileText, Sparkles, Mic } from 'lucide-react';
 import NationalEmblem from '../assets/National Emblem.png';
 
 const ScoreCard = () => {
@@ -26,6 +26,12 @@ const ScoreCard = () => {
   const [summaryType, setSummaryType] = useState('Descriptive Summary');
   const [summaryLength, setSummaryLength] = useState('');
   const [generatingSummary, setGeneratingSummary] = useState(false);
+
+  // Voice Assistant states
+  const [isVoiceActive, setIsVoiceActive] = useState(false);
+  const [voiceCallId, setVoiceCallId] = useState(null);
+  const [voiceLoading, setVoiceLoading] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState('');
 
   // Mock score data (will be replaced with real backend data)
   const [scoreData, setScoreData] = useState({
@@ -332,6 +338,61 @@ const ScoreCard = () => {
     setShowSummaryModal(false);
     setSummaryLength('');
     alert('Summary downloaded successfully!');
+  };
+
+  // Voice Assistant Functions
+  const handleStartVoiceAssistant = async () => {
+    setVoiceLoading(true);
+    setVoiceStatus('Starting voice assistant...');
+    
+    try {
+      // Import Vapi SDK dynamically
+      const Vapi = (await import('@vapi-ai/web')).default;
+      
+      // Initialize Vapi with your public key
+      const vapi = new Vapi('4fd226b5-770c-4843-8d6f-165fa39f71c6');
+      
+      // Start the call with your assistant
+      await vapi.start('45cca787-5a73-4423-80b1-e94908368397');
+      
+      setIsVoiceActive(true);
+      setVoiceStatus('Voice assistant ready! You can now speak your questions.');
+      alert('Voice Assistant started! You can now speak your questions about this proposal.');
+      
+      // Store vapi instance for stopping later
+      window.vapiInstance = vapi;
+      
+    } catch (error) {
+      console.error('Error starting voice assistant:', error);
+      setVoiceStatus('Failed to start voice assistant');
+      alert('Failed to start voice assistant. Please try again.');
+    } finally {
+      setVoiceLoading(false);
+    }
+  };
+
+  const handleStopVoiceAssistant = async () => {
+    try {
+      setVoiceStatus('Ending voice session...');
+      
+      // Stop the Vapi call
+      if (window.vapiInstance) {
+        await window.vapiInstance.stop();
+        window.vapiInstance = null;
+      }
+      
+      setIsVoiceActive(false);
+      setVoiceCallId(null);
+      setVoiceStatus('');
+      alert('Voice Assistant stopped.');
+    } catch (error) {
+      console.error('Error stopping voice assistant:', error);
+      // Clean up state even if there's an error
+      setIsVoiceActive(false);
+      setVoiceCallId(null);
+      setVoiceStatus('');
+      window.vapiInstance = null;
+    }
   };
 
   // Handle evaluation form submission
@@ -680,6 +741,20 @@ const ScoreCard = () => {
                 Evaluate
               </button>
             )}
+            {user.role === 'evaluator' && (
+              <button
+                onClick={isVoiceActive ? handleStopVoiceAssistant : handleStartVoiceAssistant}
+                disabled={voiceLoading}
+                className={`px-6 py-3 rounded-xl font-semibold transition-all hover:shadow-lg flex items-center gap-2 ${
+                  isVoiceActive 
+                    ? 'bg-red-600 text-white hover:bg-red-700' 
+                    : 'bg-green-600 text-white hover:bg-green-700'
+                } ${voiceLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <Mic className="w-5 h-5" />
+                {voiceLoading ? 'Starting...' : (isVoiceActive ? 'Stop Voice Assistant' : 'Start Voice Assistant')}
+              </button>
+            )}
             <button
               onClick={handleDownloadPDF}
               className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all hover:shadow-lg flex items-center gap-2"
@@ -689,6 +764,22 @@ const ScoreCard = () => {
             </button>
           </div>
         </div>
+
+        {/* Voice Assistant Status */}
+        {user.role === 'evaluator' && isVoiceActive && (
+          <div className="mb-6 p-4 rounded-xl border-2 bg-green-50 border-green-200 text-green-800">
+            <div className="flex items-center gap-2">
+              <Mic className="w-5 h-5 animate-pulse" />
+              <span className="font-semibold">Voice Assistant Active</span>
+              <span>- Speak your questions about this proposal</span>
+            </div>
+            {voiceCallId && (
+              <div className="mt-2 text-sm opacity-75">
+                Session ID: {voiceCallId}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Top Card - Title, Institution, Overall Score with Pie Chart */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 mb-6">

@@ -9,6 +9,7 @@ const authRoutes = require('./routes/authRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
 const scoreRoutes = require('./routes/scoreRoutes');
 const summaryRoutes = require('./routes/summaryRoutes');
+const voiceAssistantRoutes = require('./routes/voiceAssistantRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -68,6 +69,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/scorecard', scoreRoutes);
 app.use('/api/summary', summaryRoutes);
+app.use('/api/voice-assistant', voiceAssistantRoutes);
+
+// Note: Vapi webhook will be available at /api/voice-assistant/vapi-handler
 
 // Error handling middleware
 app.use((err, req, res, next) => {
