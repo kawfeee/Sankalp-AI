@@ -346,18 +346,103 @@ const ScoreCard = () => {
     setVoiceStatus('Starting voice assistant...');
     
     try {
+      // Fetch the extracted text for context
+      const token = localStorage.getItem('token');
+      let extractedText = '';
+      
+      try {
+        const textResponse = await axios.get(
+          `http://localhost:5000/api/applications/${id}/text`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (textResponse.data.success) {
+          extractedText = textResponse.data.extractedText || '';
+        }
+      } catch (err) {
+        console.warn('Could not fetch extracted text:', err);
+      }
+
+      // Build comprehensive context for the AI
+      const contextMessage = `You are the SankalpAI Evaluation Assistant. You help evaluators analyze R&D proposals for the Ministry of Coal, Government of India.
+
+CRITICAL INSTRUCTIONS:
+- Answer ONLY questions related to this proposal evaluation
+- Use ONLY the provided proposal text and scorecard data below
+- Do NOT make assumptions or add external information
+- Do NOT hallucinate or invent facts
+- Be concise, professional, and direct in your responses
+- If asked anything unrelated to this proposal evaluation, respond: "Sorry, I can't help you with that. I can help you only regarding the Evaluation of the Proposal."
+
+PROPOSAL DETAILS:
+Application Number: ${application.applicationNumber}
+Project Title: ${application.projectTitle}
+Institution: ${application.institutionName}
+Principal Investigator: ${application.principalInvestigatorName}
+Status: ${application.status}
+Budget: ₹${application.fundingAmount?.toLocaleString('en-IN') || 'N/A'}
+
+SCORECARD EVALUATION:
+━━━━━━━━━━━━━━━━━━━━━━
+Overall Score: ${calculateOverallScore()}/10
+
+1. FINANCE SCORE: ${scoreData.finance?.financial_score || 0}/10
+   - Commercialization Potential: ${scoreData.finance?.commercialization_potential || 0}/10
+   - Financial Risks: ${JSON.stringify(scoreData.finance?.financial_risks || [])}
+
+2. NOVELTY SCORE: ${scoreData.novelty?.novelty_score || 0}/10
+   - Originality Score: ${scoreData.novelty?.originality_score || 0}/10
+   - Similar Proposals Checked: ${scoreData.novelty?.total_proposals_checked || 0}
+   - Similar Sources: ${JSON.stringify(scoreData.novelty?.similar_proposals || [])}
+   - Analysis: ${JSON.stringify(scoreData.novelty?.analysis || [])}
+
+3. TECHNICAL SCORE: ${scoreData.technical?.technical_score || 0}/10
+   - Approach Clarity: ${scoreData.technical?.approach_clarity_score || 0}/10
+   - Resource Availability: ${scoreData.technical?.resource_availability_score || 0}/10
+   - Timeline Feasibility: ${scoreData.technical?.timeline_feasibility_score || 0}/10
+   - Technical Risks: ${JSON.stringify(scoreData.technical?.technical_risks || [])}
+
+4. RELEVANCE SCORE: ${scoreData.relevance?.relevance_score || 0}/10
+   - Industry Applicability: ${scoreData.relevance?.industry_applicability_score || 0}/10
+   - Ministry Alignment: ${scoreData.relevance?.ministry_alignment_score || 0}/10
+   - Safety & Environmental Impact: ${scoreData.relevance?.safety_environmental_impact_score || 0}/10
+   - PSU Adoptability: ${scoreData.relevance?.psu_adoptability_score || 0}/10
+
+FULL PROPOSAL TEXT:
+━━━━━━━━━━━━━━━━━━━━━━
+${extractedText.substring(0, 8000)}${extractedText.length > 8000 ? '... (text truncated)' : ''}
+
+Answer questions based ONLY on the above information. Do not add external knowledge.`;
+
       // Import Vapi SDK dynamically
       const Vapi = (await import('@vapi-ai/web')).default;
       
       // Initialize Vapi with your public key
       const vapi = new Vapi('4fd226b5-770c-4843-8d6f-165fa39f71c6');
       
-      // Start the call with your assistant
-      await vapi.start('45cca787-5a73-4423-80b1-e94908368397');
+      // Start the call with your assistant and context
+      await vapi.start('45cca787-5a73-4423-80b1-e94908368397', {
+        transcriber: {
+          provider: 'deepgram',
+          model: 'nova-2',
+          language: 'en'
+        },
+        model: {
+          provider: 'openai',
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: contextMessage
+            }
+          ],
+          temperature: 0.3,
+          maxTokens: 500
+        }
+      });
       
       setIsVoiceActive(true);
-      setVoiceStatus('Voice assistant ready! You can now speak your questions.');
-      alert('Voice Assistant started! You can now speak your questions about this proposal.');
+      setVoiceStatus('Voice assistant ready! Ask questions about this proposal.');
+      alert('Voice Assistant started! You can now ask questions about this proposal evaluation.');
       
       // Store vapi instance for stopping later
       window.vapiInstance = vapi;
