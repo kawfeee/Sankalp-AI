@@ -7,6 +7,13 @@ const HomePage = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  // Carousel images - using public folder for better reliability
+  const carouselImages = [
+    { src: '/Caro1.png', alt: 'Coal Innovation Slide 1' },
+    { src: '/Caro2.png', alt: 'Energy Technology Slide 2' },
+    { src: '/Caro3.png', alt: 'Research Development Slide 3' }
+  ];
+
   // If user is logged in, redirect to appropriate dashboard
   useEffect(() => {
     if (user) {
@@ -17,18 +24,6 @@ const HomePage = () => {
       }
     }
   }, [user, navigate]);
-
-  // Don't render anything if user is logged in (will redirect)
-  if (user) {
-    return null;
-  }
-
-  // Carousel images - using public folder for better reliability
-  const carouselImages = [
-    { src: '/Caro1.png', alt: 'Coal Innovation Slide 1' },
-    { src: '/Caro2.png', alt: 'Energy Technology Slide 2' },
-    { src: '/Caro3.png', alt: 'Research Development Slide 3' }
-  ];
 
   // Debug: Log images to console
   useEffect(() => {
@@ -45,6 +40,11 @@ const HomePage = () => {
     }, 3000);
     return () => clearInterval(interval);
   }, [carouselImages.length]);
+
+  // Don't render anything if user is logged in (will redirect)
+  if (user) {
+    return null;
+  }
 
   const evaluationCards = [
     {

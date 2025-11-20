@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import { FileText, Clock, CheckCircle, XCircle, AlertCircle, Eye, Loader2, PlusCircle, User, LogOut, Home, Send } from 'lucide-react';
+import { FileText, Clock, CheckCircle, XCircle, AlertCircle, Eye, Loader2, PlusCircle, User, LogOut, Home, Send, Bell } from 'lucide-react';
 import NationalEmblem from '../assets/National Emblem.png';
 
 const ApplicantDashboard = () => {
@@ -100,6 +100,13 @@ const ApplicantDashboard = () => {
               >
                 <Home className="w-5 h-5" />
                 Dashboard
+              </Link>
+              <Link
+                to="/applicant/application-updates"
+                className="px-6 py-2 rounded-xl font-semibold hover:bg-white hover:bg-opacity-20 transition-all flex items-center gap-2"
+              >
+                <Bell className="w-5 h-5" />
+                View Application Updates
               </Link>
               <Link
                 to="/applicant/submit-application"

@@ -425,3 +425,52 @@ exports.deleteApplication = async (req, res) => {
     });
   }
 };
+
+// @desc    Request re-evaluation for rejected application
+// @route   POST /api/applications/:id/re-evaluate
+// @access  Private (Applicant only)
+exports.requestReEvaluation = async (req, res) => {
+  try {
+    const application = await Application.findById(req.params.id);
+
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    // Check if user owns this application
+    if (application.userId.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Not authorized to request re-evaluation for this application' });
+    }
+
+    // Check if application is rejected
+    if (application.status !== 'rejected') {
+      return res.status(400).json({ message: 'Only rejected applications can be re-evaluated' });
+    }
+
+    // Update application status to pending and update created date
+    application.status = 'pending';
+    application.submittedAt = new Date();
+    application.updatedAt = new Date();
+    await application.save();
+
+    // Update user statistics
+    const User = require('../models/User');
+    await User.findByIdAndUpdate(req.user.id, {
+      $inc: { 
+        pendingApplications: 1
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Re-evaluation request submitted successfully',
+      application
+    });
+  } catch (error) {
+    console.error('Request re-evaluation error:', error);
+    res.status(500).json({ 
+      message: 'Error requesting re-evaluation', 
+      error: error.message 
+    });
+  }
+};

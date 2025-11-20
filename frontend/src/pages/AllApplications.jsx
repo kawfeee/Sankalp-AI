@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { Bar } from 'react-chartjs-2';
+import { Search, Filter, ArrowUpDown, ArrowLeft, TrendingUp, FileText, Clock, CheckCircle, XCircle, AlertCircle, Eye, ClipboardList, Loader2, LogOut, Home, BarChart3, PieChart } from 'lucide-react';
+import NationalEmblem from '../assets/National Emblem.png';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -190,23 +192,29 @@ const AllApplications = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navbar */}
-      <nav className="bg-gradient-to-r from-purple-600 to-purple-800 text-white shadow-lg">
+      <nav className="bg-red-600 text-white shadow-lg border-b-2 border-red-700">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
-            <Link to="/" className="text-2xl font-bold hover:opacity-90 transition-opacity">
-              Sankalp-AI
-            </Link>
+            <div className="flex items-center gap-4">
+              <img src={NationalEmblem} alt="National Emblem" className="h-12 w-12" />
+              <div>
+                <h1 className="text-xl font-bold text-white">Ministry of Coal</h1>
+                <p className="text-xs text-red-100">Government of India</p>
+              </div>
+            </div>
             <div className="flex items-center gap-4">
               <Link
                 to="/evaluator/dashboard"
-                className="px-6 py-2 rounded-lg font-semibold hover:bg-white hover:bg-opacity-20 transition-all"
+                className="px-6 py-2 rounded-xl font-semibold hover:bg-white hover:bg-opacity-20 transition-all flex items-center gap-2"
               >
+                <Home className="w-5 h-5" />
                 Dashboard
               </Link>
               <button
                 onClick={handleLogout}
-                className="px-6 py-2 border-2 border-white rounded-lg font-semibold hover:bg-white hover:text-purple-600 transition-all"
+                className="px-6 py-2 border-2 border-white rounded-xl font-semibold hover:bg-white hover:text-red-600 transition-all flex items-center gap-2"
               >
+                <LogOut className="w-5 h-5" />
                 Logout
               </button>
             </div>
@@ -218,39 +226,42 @@ const AllApplications = () => {
         {/* Header with Back Button */}
         <button
           onClick={() => navigate('/evaluator/dashboard')}
-          className="text-purple-600 hover:text-purple-800 mb-4 flex items-center gap-2 font-semibold"
+          className="text-red-600 hover:text-red-700 mb-4 flex items-center gap-2 font-semibold transition-colors"
         >
-          <span>←</span> Back to Dashboard
+          <ArrowLeft className="w-5 h-5" />
+          Back to Dashboard
         </button>
 
-        <h1 className="text-4xl font-bold text-gray-800 mb-8">All Applications</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-8">All Applications</h1>
 
         {/* SECTION 1: Search, Filter, and Sort Bar */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Search Bar */}
             <div className="lg:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                🔍 Search
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                <Search className="w-4 h-4 text-red-600" />
+                Search
               </label>
               <input
                 type="text"
                 placeholder="Application # or Title..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
               />
             </div>
 
             {/* Status Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                🏷️ Status Filter
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                <Filter className="w-4 h-4 text-red-600" />
+                Status Filter
               </label>
               <select
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
@@ -262,13 +273,14 @@ const AllApplications = () => {
 
             {/* Sort By Score */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                📊 Sort By
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                <BarChart3 className="w-4 h-4 text-red-600" />
+                Sort By
               </label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
               >
                 <option value="submission_time">Submission Time</option>
                 <option value="overall_score">Overall Score</option>
@@ -281,13 +293,14 @@ const AllApplications = () => {
 
             {/* Sort Order */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                ⬆️⬇️ Order
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                <ArrowUpDown className="w-4 h-4 text-red-600" />
+                Order
               </label>
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
               >
                 <option value="desc">High to Low</option>
                 <option value="asc">Low to High</option>
@@ -298,19 +311,27 @@ const AllApplications = () => {
 
         {/* SECTION 2: Benchmarks Dashboard */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">📈 Benchmarks</h2>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">Benchmarks</h2>
+          </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Highest Overall Score Card - Centered */}
-            <div className="bg-gradient-to-br from-purple-500 to-purple-700 text-white rounded-lg shadow-lg p-6 flex flex-col items-center justify-center">
-              <p className="text-purple-100 text-sm font-medium mb-3">Highest Overall Score</p>
+            <div className="bg-red-600 text-white rounded-2xl shadow-lg border-2 border-red-700 p-8 flex flex-col items-center justify-center">
+              <p className="text-red-100 text-sm font-semibold mb-3">Highest Overall Score</p>
               <p className="text-7xl font-bold">{benchmarks.highestOverallScore}</p>
-              <p className="text-purple-100 text-base mt-3">out of 10</p>
+              <p className="text-red-100 text-base mt-3 font-medium">out of 10</p>
             </div>
 
             {/* Bar Graph - Highest Scores by Category - Chart.js */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-base font-bold text-gray-800 mb-4 text-center">Highest Scores by Category</h3>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+              <div className="flex items-center gap-2 justify-center mb-4">
+                <BarChart3 className="w-5 h-5 text-red-600" />
+                <h3 className="text-base font-bold text-gray-900">Highest Scores by Category</h3>
+              </div>
               <div className="h-48">
                 <Bar
                   data={{
@@ -324,16 +345,16 @@ const AllApplications = () => {
                         parseFloat(benchmarks.highestRelevance)
                       ],
                       backgroundColor: [
-                        'rgba(59, 130, 246, 0.8)',   // Blue
-                        'rgba(139, 92, 246, 0.8)',   // Purple
-                        'rgba(16, 185, 129, 0.8)',   // Green
-                        'rgba(245, 158, 11, 0.8)'    // Orange
+                        'rgba(220, 38, 38, 0.8)',    // Red
+                        'rgba(249, 115, 22, 0.8)',   // Orange
+                        'rgba(34, 197, 94, 0.8)',    // Green
+                        'rgba(234, 179, 8, 0.8)'     // Yellow
                       ],
                       borderColor: [
-                        'rgb(59, 130, 246)',
-                        'rgb(139, 92, 246)',
-                        'rgb(16, 185, 129)',
-                        'rgb(245, 158, 11)'
+                        'rgb(220, 38, 38)',
+                        'rgb(249, 115, 22)',
+                        'rgb(34, 197, 94)',
+                        'rgb(234, 179, 8)'
                       ],
                       borderWidth: 2,
                       borderRadius: 6
@@ -393,11 +414,14 @@ const AllApplications = () => {
             </div>
 
             {/* Pie Chart - Status Distribution with Side Legend */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-base font-bold text-gray-800 mb-4 text-center">Proposals Overview</h3>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+              <div className="flex items-center gap-2 justify-center mb-4">
+                <PieChart className="w-5 h-5 text-red-600" />
+                <h3 className="text-base font-bold text-gray-900">Proposals Overview</h3>
+              </div>
               <div className="flex items-center justify-between gap-4">
                 {/* Pie Chart */}
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <svg viewBox="0 0 200 200" className="w-32 h-32">
                     {(() => {
                       const total = benchmarks.totalApproved + benchmarks.totalRejected + benchmarks.totalPending;
@@ -424,21 +448,21 @@ const AllApplications = () => {
                 {/* Legend on Right */}
                 <div className="flex-1 space-y-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full flex-shrink-0"></div>
+                    <div className="w-3 h-3 bg-green-500 rounded-full shrink-0"></div>
                     <div className="flex-1 flex justify-between items-center">
                       <span className="text-xs text-gray-700">Approved</span>
                       <span className="text-sm font-bold text-gray-800">{benchmarks.totalApproved}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full flex-shrink-0"></div>
+                    <div className="w-3 h-3 bg-red-500 rounded-full shrink-0"></div>
                     <div className="flex-1 flex justify-between items-center">
                       <span className="text-xs text-gray-700">Rejected</span>
                       <span className="text-sm font-bold text-gray-800">{benchmarks.totalRejected}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-orange-500 rounded-full flex-shrink-0"></div>
+                    <div className="w-3 h-3 bg-orange-500 rounded-full shrink-0"></div>
                     <div className="flex-1 flex justify-between items-center">
                       <span className="text-xs text-gray-700">Pending</span>
                       <span className="text-sm font-bold text-gray-800">{benchmarks.totalPending}</span>
@@ -453,25 +477,33 @@ const AllApplications = () => {
         {/* SECTION 3: Applications List */}
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-gray-800">R&D Proposals</h2>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center">
+                <FileText className="w-6 h-6 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">R&D Proposals</h2>
+            </div>
             <p className="text-gray-600">
-              Showing <span className="font-bold text-purple-600">{filteredApplications.length}</span> of {applications.length} applications
+              Showing <span className="font-bold text-red-600">{filteredApplications.length}</span> of {applications.length} applications
             </p>
           </div>
 
           {loading ? (
-            <div className="bg-white rounded-lg shadow-lg p-12 text-center">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading applications...</p>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 text-center">
+              <Loader2 className="w-16 h-16 text-red-600 animate-spin mx-auto mb-4" />
+              <p className="text-gray-600 font-medium">Loading applications...</p>
             </div>
           ) : filteredApplications.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-lg p-12 text-center">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-16 text-center">
+              <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FileText className="w-10 h-10 text-red-600" />
+              </div>
               <p className="text-gray-600 text-lg">No applications found matching your criteria.</p>
             </div>
           ) : (
             <div className="space-y-4">
               {/* Table Header */}
-              <div className="bg-white rounded-lg shadow-md p-4 hidden md:grid md:grid-cols-6 gap-4 font-semibold text-gray-700 text-sm">
+              <div className="bg-red-50 rounded-xl shadow-sm p-4 hidden md:grid md:grid-cols-6 gap-4 font-bold text-gray-700 text-xs uppercase tracking-wider border border-red-100">
                 <div>APPLICATION NUMBER</div>
                 <div>PROJECT TITLE</div>
                 <div className="text-center">OVERALL SCORE</div>
@@ -486,25 +518,25 @@ const AllApplications = () => {
                 return (
                   <div 
                     key={app._id} 
-                    className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all p-4 md:grid md:grid-cols-6 md:gap-3 md:items-center"
+                    className="bg-white rounded-2xl shadow-md hover:shadow-xl hover:border-red-200 transition-all p-4 md:grid md:grid-cols-6 md:gap-3 md:items-center border border-gray-100"
                   >
                     {/* Application Number */}
                     <div className="mb-2 md:mb-0">
-                      <p className="text-xs text-gray-500 md:hidden mb-1">Application Number</p>
-                      <p className="font-bold text-gray-800 text-sm">{app.applicationNumber}</p>
+                      <p className="text-xs text-gray-500 md:hidden mb-1 font-semibold">Application Number</p>
+                      <p className="font-bold text-gray-900 text-sm">{app.applicationNumber}</p>
                     </div>
 
                     {/* Project Title */}
                     <div className="mb-2 md:mb-0">
-                      <p className="text-xs text-gray-500 md:hidden mb-1">Project Title</p>
-                      <p className="font-semibold text-gray-800 text-sm line-clamp-1">{app.projectTitle}</p>
+                      <p className="text-xs text-gray-500 md:hidden mb-1 font-semibold">Project Title</p>
+                      <p className="font-semibold text-gray-900 text-sm line-clamp-1">{app.projectTitle}</p>
                     </div>
 
                     {/* Overall Score */}
                     <div className="mb-2 md:mb-0 md:flex md:justify-center">
                       <div className="text-center">
-                        <p className="text-xs text-gray-500 md:hidden mb-1">Overall Score</p>
-                        <p className="text-base font-bold text-purple-600">
+                        <p className="text-xs text-gray-500 md:hidden mb-1 font-semibold">Overall Score</p>
+                        <p className="text-lg font-bold text-red-600">
                           {scorecard?.overall_score ? scorecard.overall_score.toFixed(1) : 'N/A'}
                         </p>
                       </div>
@@ -512,31 +544,37 @@ const AllApplications = () => {
 
                     {/* Status */}
                     <div className="mb-2 md:mb-0 md:flex md:justify-center">
-                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(app.status)}`}>
+                      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-xl text-xs font-semibold ${getStatusColor(app.status)}`}>
+                        {app.status === 'approved' && <CheckCircle className="w-3 h-3" />}
+                        {app.status === 'rejected' && <XCircle className="w-3 h-3" />}
+                        {app.status === 'under-review' && <Clock className="w-3 h-3" />}
+                        {app.status === 'pending' && <AlertCircle className="w-3 h-3" />}
                         {app.status.toUpperCase()}
                       </span>
                     </div>
 
                     {/* Submitted Date */}
                     <div className="mb-2 md:mb-0 md:text-center">
-                      <p className="text-xs text-gray-500 md:hidden mb-1">Submitted Date</p>
-                      <p className="text-xs text-gray-700">
+                      <p className="text-xs text-gray-500 md:hidden mb-1 font-semibold">Submitted Date</p>
+                      <p className="text-xs text-gray-700 font-medium">
                         {new Date(app.submittedAt).toLocaleDateString('en-GB')}
                       </p>
                     </div>
 
                     {/* Action - Two Buttons */}
-                    <div className="flex flex-col gap-1.5 md:flex-row md:justify-center md:flex-wrap">
+                    <div className="flex flex-col gap-2 md:flex-row md:justify-center md:flex-wrap">
                       <button
                         onClick={() => navigate(`/evaluator/application/${app._id}`)}
-                        className="px-2 py-1 bg-blue-600 text-white rounded text-[10px] font-semibold hover:bg-blue-700 transition-colors whitespace-nowrap"
+                        className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-gray-600 text-white rounded-lg text-xs font-semibold hover:bg-gray-700 transition-all hover:shadow-md whitespace-nowrap"
                       >
+                        <Eye className="w-3 h-3" />
                         View Application
                       </button>
                       <button
                         onClick={() => navigate(`/evaluator/scorecard/${app._id}`)}
-                        className="px-2 py-1 bg-purple-600 text-white rounded text-[10px] font-semibold hover:bg-purple-700 transition-colors whitespace-nowrap"
+                        className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-red-600 text-white rounded-lg text-xs font-semibold hover:bg-red-700 transition-all hover:shadow-md whitespace-nowrap"
                       >
+                        <ClipboardList className="w-3 h-3" />
                         View Score Card
                       </button>
                     </div>

@@ -5,7 +5,8 @@ const {
   getApplicationById,
   getAllApplications,
   updateApplicationStatus,
-  deleteApplication
+  deleteApplication,
+  requestReEvaluation
 } = require('../controllers/applicationController');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 const { upload } = require('../config/cloudinary');
@@ -17,6 +18,7 @@ router.post('/', protect, restrictTo('applicant'), upload.single('pdfFile'), cre
 router.get('/', protect, restrictTo('applicant'), getUserApplications);
 router.get('/:id', protect, getApplicationById);
 router.delete('/:id', protect, restrictTo('applicant'), deleteApplication);
+router.post('/:id/re-evaluate', protect, restrictTo('applicant'), requestReEvaluation);
 
 // Evaluator routes
 router.get('/all/list', protect, restrictTo('evaluator'), getAllApplications);

@@ -15,6 +15,8 @@ import ApplicationDetails from './pages/ApplicationDetails'
 import AllApplications from './pages/AllApplications'
 import ScoreCard from './pages/ScoreCard'
 import EvaluatorApplicationDetails from './pages/EvaluatorApplicationDetails'
+import ApplicationUpdates from './pages/ApplicationUpdates'
+import EvaluatorRemarks from './pages/EvaluatorRemarks'
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRole }) => {
@@ -118,6 +120,33 @@ function App() {
               element={
                 <ProtectedRoute allowedRole="applicant">
                   <ApplicationDetails />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/applicant/application-updates" 
+              element={
+                <ProtectedRoute allowedRole="applicant">
+                  <ApplicationUpdates />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/applicant/scorecard/:id" 
+              element={
+                <ProtectedRoute allowedRole="applicant">
+                  <ScoreCard />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/applicant/remarks/:id" 
+              element={
+                <ProtectedRoute allowedRole="applicant">
+                  <EvaluatorRemarks />
                 </ProtectedRoute>
               } 
             />
