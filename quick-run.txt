@@ -1,0 +1,8 @@
+NOVELTY BACKEND RUN COMMAND:
+cd C:\Users\kaifa\OneDrive\Desktop\work\novelty-check\backend; .\venv\Scripts\Activate.ps1; python main.py
+
+FRONTEND:
+npm run dev
+
+BACKEND:
+npm start

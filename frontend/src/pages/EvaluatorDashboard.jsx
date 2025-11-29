@@ -32,12 +32,45 @@ const EvaluatorDashboard = () => {
       if (response.data.success) {
         const allApplications = response.data.applications;
         
+        // Fetch scorecards for all applications
+        const applicationsWithScores = await Promise.all(
+          allApplications.map(async (app) => {
+            try {
+              const scoreResponse = await axios.get(
+                `http://localhost:5000/api/scorecard/${app.applicationNumber}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              
+              if (scoreResponse.data.success && scoreResponse.data.score) {
+                const scorecard = scoreResponse.data.score;
+                
+                // Calculate overall score from the four components
+                const scores = [];
+                if (scorecard.finance_score?.financial_score) scores.push(Number(scorecard.finance_score.financial_score));
+                if (scorecard.novelty_score?.novelty_score) scores.push(Number(scorecard.novelty_score.novelty_score));
+                if (scorecard.technical_score?.technical_score) scores.push(Number(scorecard.technical_score.technical_score));
+                if (scorecard.relevance_score?.relevance_score) scores.push(Number(scorecard.relevance_score.relevance_score));
+                
+                const overallScore = scores.length > 0 
+                  ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)
+                  : null;
+                
+                return { ...app, overallScore };
+              }
+              return { ...app, overallScore: null };
+            } catch (err) {
+              console.log(`No scorecard found for application ${app.applicationNumber}`);
+              return { ...app, overallScore: null };
+            }
+          })
+        );
+        
         // Calculate statistics
-        const totalApplications = allApplications.length;
-        const pendingReviews = allApplications.filter(
+        const totalApplications = applicationsWithScores.length;
+        const pendingReviews = applicationsWithScores.filter(
           app => app.status === 'pending' || app.status === 'under-review'
         ).length;
-        const completed = allApplications.filter(
+        const completed = applicationsWithScores.filter(
           app => app.status === 'approved' || app.status === 'rejected'
         ).length;
         
@@ -48,7 +81,7 @@ const EvaluatorDashboard = () => {
         });
         
         // Get only the latest 3 applications
-        setLatestApplications(allApplications.slice(0, 3));
+        setLatestApplications(applicationsWithScores.slice(0, 3));
       }
     } catch (error) {
       console.error('Error fetching applications:', error);
@@ -221,7 +254,7 @@ const EvaluatorDashboard = () => {
                   <div className="mb-6 p-4 bg-red-50 rounded-xl border border-red-100">
                     <p className="text-sm font-semibold text-gray-600 mb-1">Overall Score</p>
                     <p className="text-3xl font-bold text-red-600">
-                      {app.overallScore !== null ? `${app.overallScore}/100` : 'Not Scored'}
+                      {app.overallScore !== null ? `${app.overallScore}/10` : 'Not Scored'}
                     </p>
                   </div>
                   

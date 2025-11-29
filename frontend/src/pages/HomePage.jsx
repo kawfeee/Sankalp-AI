@@ -52,7 +52,8 @@ const HomePage = () => {
   const carouselImages = [
     { src: '/Caro1.png', alt: 'Coal Innovation Slide 1' },
     { src: '/Caro2.png', alt: 'Energy Technology Slide 2' },
-    { src: '/Caro3.png', alt: 'Research Development Slide 3' }
+    { src: '/Caro3.png', alt: 'Research Development Slide 3' },
+    { src: '/Caro4.png', alt: 'Research Development Slide 4' }
   ];
 
   // React Slick settings
