@@ -24,11 +24,18 @@ module.exports = async function novelty_Score(applicationNumber) {
       throw new Error('No data received from Novelty API');
     }
 
-    // Return the novelty score data
+    console.log('📥 Raw Python API Response:', JSON.stringify(response.data, null, 2));
+
+    // Return the novelty score data with new format
     return {
       application_number: response.data.application_number || applicationNumber,
       novelty_score: Number(response.data.novelty_score) || 0,
       total_proposals_checked: Number(response.data.total_proposals_checked) || 0,
+      novelty_scores: response.data.novelty_scores ? {
+        originality_score: Number(response.data.novelty_scores.originality_score) || 0,
+        technical_novelty_score: Number(response.data.novelty_scores.technical_novelty_score) || 0,
+        application_novelty_score: Number(response.data.novelty_scores.application_novelty_score) || 0
+      } : undefined,
       similar_proposals: Array.isArray(response.data.similar_proposals) 
         ? response.data.similar_proposals.map(p => ({
             application_number: p.application_number || '',

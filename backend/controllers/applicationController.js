@@ -174,8 +174,17 @@ exports.createApplication = async (req, res) => {
             application_number: application.applicationNumber,
             novelty_score: noveltyRes ? {
               application_number: noveltyRes.application_number || application.applicationNumber,
-              novelty_score: Number(noveltyRes.novelty_score) ? Number(noveltyRes.novelty_score) / 10 : null,
+              novelty_score: noveltyRes.novelty_scores && typeof noveltyRes.novelty_scores === 'object' 
+                ? ((Number(noveltyRes.novelty_scores.originality_score) + 
+                    Number(noveltyRes.novelty_scores.technical_novelty_score) + 
+                    Number(noveltyRes.novelty_scores.application_novelty_score)) / 30)
+                : (Number(noveltyRes.novelty_score) ? Number(noveltyRes.novelty_score) / 10 : null),
               total_proposals_checked: Number(noveltyRes.total_proposals_checked) || 0,
+              novelty_scores: noveltyRes.novelty_scores && typeof noveltyRes.novelty_scores === 'object' ? {
+                originality_score: Number(noveltyRes.novelty_scores.originality_score) || 0,
+                technical_novelty_score: Number(noveltyRes.novelty_scores.technical_novelty_score) || 0,
+                application_novelty_score: Number(noveltyRes.novelty_scores.application_novelty_score) || 0
+              } : undefined,
               similar_proposals: Array.isArray(noveltyRes.similar_proposals) ? noveltyRes.similar_proposals : []
             } : null,
             technical_score: technicalRes ? {

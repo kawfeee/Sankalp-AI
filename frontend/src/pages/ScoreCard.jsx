@@ -145,6 +145,11 @@ const ScoreCard = () => {
           novelty: s.novelty_score || {
             novelty_score: 0,
             total_proposals_checked: 0,
+            novelty_scores: {
+              originality_score: 0,
+              technical_novelty_score: 0,
+              application_novelty_score: 0
+            },
             similar_proposals: []
           },
           technical: s.technical_score || {
@@ -1016,40 +1021,70 @@ Answer questions based ONLY on the above information. Do not add external knowle
                 Novelty Score
               </h2>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Top Row: Originality Score and Proposals Checked */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
-                  <p className="text-sm text-gray-600 mb-1 font-semibold">Novelty Score</p>
-                  <p className="text-3xl font-bold text-orange-600">{Number(scoreData.novelty.novelty_score).toFixed(1)}/10</p>
+                <div className="bg-orange-50 p-6 rounded-xl border-2 border-orange-200">
+                  <p className="text-sm text-gray-600 mb-2 font-semibold">Originality Score</p>
+                  <p className="text-4xl font-bold text-orange-600">
+                    {scoreData.novelty.novelty_scores?.originality_score 
+                      ? (Number(scoreData.novelty.novelty_scores.originality_score) / 10).toFixed(2)
+                      : '0.00'}/10
+                  </p>
                 </div>
-                <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
-                  <p className="text-sm text-gray-600 mb-1 font-semibold">Proposals Checked</p>
-                  <p className="text-3xl font-bold text-orange-600">{scoreData.novelty.total_proposals_checked}</p>
+                <div className="bg-orange-50 p-6 rounded-xl border-2 border-orange-200">
+                  <p className="text-sm text-gray-600 mb-2 font-semibold">Proposals Checked</p>
+                  <p className="text-4xl font-bold text-orange-600">{scoreData.novelty.total_proposals_checked ?? 0}</p>
                 </div>
               </div>
+              
+              {/* Novelty Score Breakdown */}
               <div>
-                <p className="text-sm font-semibold text-gray-700 mb-3">Similar Proposals:</p>
+                <p className="text-base font-bold text-gray-800 mb-4">Novelty Breakdown:</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-orange-50 p-5 rounded-xl border-2 border-orange-200">
+                    <p className="text-sm text-gray-600 mb-2 font-semibold">Technical Novelty</p>
+                    <p className="text-3xl font-bold text-orange-600">
+                      {scoreData.novelty.novelty_scores?.technical_novelty_score 
+                        ? (Number(scoreData.novelty.novelty_scores.technical_novelty_score) / 10).toFixed(2)
+                        : '0.00'}/10
+                    </p>
+                  </div>
+                  <div className="bg-orange-50 p-5 rounded-xl border-2 border-orange-200">
+                    <p className="text-sm text-gray-600 mb-2 font-semibold">Application Novelty</p>
+                    <p className="text-3xl font-bold text-orange-600">
+                      {scoreData.novelty.novelty_scores?.application_novelty_score 
+                        ? (Number(scoreData.novelty.novelty_scores.application_novelty_score) / 10).toFixed(2)
+                        : '0.00'}/10
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Similar Proposals */}
+              <div>
+                <p className="text-base font-bold text-gray-800 mb-4">Similar Proposals:</p>
                 {scoreData.novelty.similar_proposals && scoreData.novelty.similar_proposals.length > 0 ? (
-                  <div className="overflow-x-auto rounded-xl border border-gray-200">
+                  <div className="overflow-x-auto rounded-xl border-2 border-orange-200">
                     <table className="w-full text-sm">
-                      <thead className="bg-gray-50">
-                        <tr className="border-b">
-                          <th className="text-left py-3 px-4 text-gray-700 font-semibold">Application Number</th>
-                          <th className="text-right py-3 px-4 text-gray-700 font-semibold">Similarity %</th>
+                      <thead className="bg-orange-50">
+                        <tr className="border-b-2 border-orange-200">
+                          <th className="text-left py-3 px-4 text-gray-700 font-bold">Application Number</th>
+                          <th className="text-right py-3 px-4 text-gray-700 font-bold">Similarity %</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody className="bg-white">
                         {scoreData.novelty.similar_proposals.map((proposal, index) => (
-                          <tr key={index} className="border-b hover:bg-gray-50 transition-colors">
-                            <td className="py-3 px-4 text-gray-700">{proposal.application_number}</td>
-                            <td className="py-3 px-4 text-right text-orange-600 font-semibold">{proposal.similarity_percentage}%</td>
+                          <tr key={index} className="border-b border-orange-100 hover:bg-orange-50 transition-colors">
+                            <td className="py-3 px-4 text-gray-700 font-medium">{proposal.application_number}</td>
+                            <td className="py-3 px-4 text-right text-orange-600 font-bold">{proposal.similarity_percentage}%</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500 italic bg-gray-50 p-3 rounded-lg">No similar proposals found</p>
+                  <p className="text-sm text-gray-500 italic bg-gray-50 p-4 rounded-lg border border-gray-200">No similar proposals found</p>
                 )}
               </div>
             </div>

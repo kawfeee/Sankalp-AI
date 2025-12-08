@@ -6,6 +6,11 @@ const ScoreCardSchema = new mongoose.Schema({
     application_number: String,
     novelty_score: Number,
     total_proposals_checked: Number,
+    novelty_scores: {
+      originality_score: Number,
+      technical_novelty_score: Number,
+      application_novelty_score: Number
+    },
     similar_proposals: [
       {
         application_number: String,
