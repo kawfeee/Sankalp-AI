@@ -1,23 +1,28 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Users, User, Mail, Lock, Eye, EyeOff, ArrowLeft, UserPlus, AlertCircle, Loader2 } from 'lucide-react';
+import { Users, User, Mail, Lock, Eye, EyeOff, ArrowLeft, UserPlus, AlertCircle, Loader2, Shield, CheckCircle } from 'lucide-react';
+import axios from 'axios';
 
 const ApplicantSignup = () => {
+  const [step, setStep] = useState('SIGNUP');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { signup } = useAuth();
+  const { setToken } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSignupSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
@@ -30,14 +35,72 @@ const ApplicantSignup = () => {
     }
 
     setLoading(true);
-    const result = await signup(name, email, password, 'applicant');
-    
-    if (result.success) {
-      navigate('/applicant/dashboard');
-    } else {
-      setError(result.error);
+    try {
+      const response = await axios.post('http://localhost:5000/api/auth/signup', {
+        name,
+        email,
+        password,
+        role: 'applicant'
+      });
+
+      // Check if user is whitelisted and got token directly
+      if (response.data.success && response.data.token) {
+        // Whitelisted user - direct signup
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        setToken(response.data.token);
+        setSuccess('Account created successfully! Redirecting...');
+        setTimeout(() => {
+          navigate('/applicant/dashboard');
+        }, 1000);
+      } else if (response.data.success && response.data.nextStep === 'VERIFY_OTP') {
+        // Regular user - OTP required
+        setSuccess('Account created! OTP sent to your email.');
+        setStep('VERIFY_OTP');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Signup failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  const handleOTPSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setLoading(true);
+
+    console.log('Submitting OTP:', otp, 'for email:', email);
+
+    try {
+      const response = await axios.post('http://localhost:5000/api/auth/verify-otp', {
+        email,
+        otp
+      });
+
+      console.log('OTP Response:', response.data);
+
+      if (response.data.success && response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        setToken(response.data.token);
+        
+        setSuccess('Account verified! Redirecting...');
+        setLoading(false);
+        
+        setTimeout(() => {
+          navigate('/applicant/dashboard');
+        }, 1500);
+      } else {
+        setLoading(false);
+        setError('Verification failed. Please try again.');
+      }
+    } catch (err) {
+      console.error('OTP Error:', err.response?.data || err.message);
+      setLoading(false);
+      setError(err.response?.data?.message || 'Invalid OTP. Please try again.');
+    }
   };
 
   return (
@@ -60,8 +123,16 @@ const ApplicantSignup = () => {
           </div>
         )}
 
-        {/* Signup Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Success Alert */}
+        {success && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-6 flex items-center gap-3">
+            <CheckCircle className="w-5 h-5 shrink-0" />
+            <span className="text-sm">{success}</span>
+          </div>
+        )}
+
+        {step === 'SIGNUP' ? (
+        <form onSubmit={handleSignupSubmit} className="space-y-5">
           {/* Name Field */}
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-gray-700">Full Name</label>
@@ -162,11 +233,70 @@ const ApplicantSignup = () => {
             ) : (
               <>
                 <UserPlus className="w-5 h-5" />
-                Create Applicant Account
+                Create Account & Send OTP
               </>
             )}
           </button>
         </form>
+        ) : (
+          /* OTP Verification Form */
+          <form onSubmit={handleOTPSubmit} className="space-y-6">
+            <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl flex items-start gap-3">
+              <Shield className="w-5 h-5 shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-semibold mb-1">Verify Your Email</p>
+                <p>A 4-digit OTP has been sent to <strong>{email}</strong>. Please enter it below to activate your account.</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">Enter OTP</label>
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 text-center text-2xl font-bold tracking-widest text-gray-900"
+                placeholder="0000"
+                maxLength="4"
+                required
+              />
+              <p className="text-xs text-gray-500 text-center">OTP expires in 5 minutes</p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                type="submit"
+                disabled={loading || otp.length !== 4}
+                className="w-full bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-xl font-semibold text-sm shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Verifying OTP...
+                  </>
+                ) : (
+                  <>
+                    <Shield className="w-5 h-5" />
+                    Verify & Activate Account
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setStep('SIGNUP');
+                  setOtp('');
+                  setError('');
+                  setSuccess('');
+                }}
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-xl font-semibold text-sm transition-colors"
+              >
+                Back to Signup
+              </button>
+            </div>
+          </form>
+        )}
 
         {/* Footer Links */}
         <div className="mt-8 space-y-4">

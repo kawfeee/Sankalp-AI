@@ -1,30 +1,82 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowLeft, UserCheck, AlertCircle, Loader2 } from 'lucide-react';
+import { ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowLeft, UserCheck, AlertCircle, Loader2, Shield, CheckCircle } from 'lucide-react';
+import axios from 'axios';
 
 const EvaluatorLogin = () => {
+  const [step, setStep] = useState('LOGIN');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { login } = useAuth();
+  const { setToken } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setLoading(true);
+
+    try {
+      const response = await axios.post('http://localhost:5000/api/auth/login', {
+        email,
+        password,
+        role: 'evaluator'
+      });
+
+      // Check if user is whitelisted and got token directly
+      if (response.data.success && response.data.token) {
+        // Whitelisted user - direct login
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        setToken(response.data.token);
+        setSuccess('Login successful! Redirecting...');
+        setTimeout(() => {
+          navigate('/evaluator/dashboard');
+        }, 1000);
+      } else if (response.data.success && response.data.nextStep === 'VERIFY_OTP') {
+        // Regular user - OTP required
+        setSuccess('OTP sent to your email! Please check your inbox.');
+        setStep('VERIFY_OTP');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOTPSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    const result = await login(email, password, 'evaluator');
-    
-    if (result.success) {
-      navigate('/evaluator/dashboard');
-    } else {
-      setError(result.error);
+    try {
+      const response = await axios.post('http://localhost:5000/api/auth/verify-otp', {
+        email,
+        otp
+      });
+
+      if (response.data.success && response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        setToken(response.data.token);
+        
+        setSuccess('Login successful! Redirecting...');
+        setTimeout(() => {
+          navigate('/evaluator/dashboard');
+        }, 1000);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Invalid OTP. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -47,8 +99,16 @@ const EvaluatorLogin = () => {
           </div>
         )}
 
-        {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Success Alert */}
+        {success && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-6 flex items-center gap-3">
+            <CheckCircle className="w-5 h-5 shrink-0" />
+            <span className="text-sm">{success}</span>
+          </div>
+        )}
+
+        {step === 'LOGIN' ? (
+        <form onSubmit={handleLoginSubmit} className="space-y-6">
           {/* Email Field */}
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-gray-700">Email Address</label>
@@ -101,16 +161,74 @@ const EvaluatorLogin = () => {
             {loading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                Authenticating...
+                Verifying credentials...
               </>
             ) : (
               <>
                 <UserCheck className="w-5 h-5" />
-                Access Dashboard
+                Send OTP
               </>
             )}
           </button>
         </form>
+        ) : (
+          <form onSubmit={handleOTPSubmit} className="space-y-6">
+            <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl flex items-start gap-3">
+              <Shield className="w-5 h-5 shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-semibold mb-1">Email Verification Required</p>
+                <p>A 4-digit OTP has been sent to <strong>{email}</strong>. Please enter it below to complete your login.</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">Enter OTP</label>
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 text-center text-2xl font-bold tracking-widest text-gray-900"
+                placeholder="0000"
+                maxLength="4"
+                required
+              />
+              <p className="text-xs text-gray-500 text-center">OTP expires in 5 minutes</p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                type="submit"
+                disabled={loading || otp.length !== 4}
+                className="w-full bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-xl font-semibold text-sm shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Verifying OTP...
+                  </>
+                ) : (
+                  <>
+                    <Shield className="w-5 h-5" />
+                    Verify & Login
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setStep('LOGIN');
+                  setOtp('');
+                  setError('');
+                  setSuccess('');
+                }}
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-xl font-semibold text-sm transition-colors"
+              >
+                Back to Login
+              </button>
+            </div>
+          </form>
+        )}
 
         {/* Footer Links */}
         <div className="mt-8 space-y-4">
