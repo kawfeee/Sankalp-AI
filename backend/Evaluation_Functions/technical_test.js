@@ -44,7 +44,7 @@ SECTION 10.0 EVALUATION OF S&T PROJECT PROPOSAL
 
 10.8 The proposal should state the benefits expected for the industry from the research work.
 
-IMPORTANT/MANDATORY !!! : When identifying technical risks in the "technical_risks" array, naturally INCLUDE the relevant section numbers (e.g., "Section 10.2", "Section 10.1") within your sentences to make the output authentic and traceable to the guidelines above.
+IMPORTANT/MANDATORY: When identifying technical risks in the "technical_risks" array, naturally INCLUDE the relevant section numbers (e.g., "Section 10.2", "Section 10.1") within your sentences to make the output authentic and traceable to the guidelines above.
 
 Return ONLY a valid JSON object (no markdown, no extra text) with this exact structure:
 {  

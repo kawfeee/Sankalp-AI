@@ -5,9 +5,102 @@ import axios from 'axios';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
-import { ArrowLeft, Home, List, LogOut, Edit, Download, DollarSign, Lightbulb, Wrench, Target, PieChart, Loader2, AlertCircle, CheckCircle, X, FileText, Sparkles, Mic } from 'lucide-react';
+import { ArrowLeft, Home, List, LogOut, Edit, Download, DollarSign, Lightbulb, Wrench, Target, PieChart, Loader2, AlertCircle, CheckCircle, X, FileText, Sparkles, Mic, Info } from 'lucide-react';
 import NationalEmblem from '../assets/National Emblem.png';
 import VoiceAgentLogo from '../assets/VoiceAgentLogo.png';
+
+// Section definitions for tooltips
+const SECTION_DEFINITIONS = {
+  "4.0": "SECTION 4.0 THRUST AREAS OF RESEARCH PROJECTS",
+  "4.1": "SECTION 4.1 Thrust areas for future research in the coal sector are listed on the MoC and CMPDI website.",
+  "4.2": "SECTION 4.2 Advanced technologies and methods for improving production and productivity in underground and opencast mining.",
+  "4.3": "SECTION 4.3 Improvement of safety, health, and environment.",
+  "4.4": "SECTION 4.4 Waste to Wealth initiatives.",
+  "4.5": "SECTION 4.5 Alternative uses of coal and clean coal technologies.",
+  "4.6": "SECTION 4.6 Coal beneficiation and utilization.",
+  "4.7": "SECTION 4.7 Exploration activities.",
+  "4.8": "SECTION 4.8 Innovation and indigenization under the Make-in-India concept.",
+  "4.9": "SECTION 4.9 Projects in any other area that benefit the coal industry are also permitted. Interdisciplinary, multidisciplinary, and transdisciplinary projects are encouraged.",
+  "6.0": "SECTION 6.0 COST OF ITEMS ALLOWED IN PROJECT PROPOSAL",
+  "6.1": "SECTION 6.1 Equipment: Only project-specific equipment allowed, and only if similar equipment is not already available.",
+  "6.2": "SECTION 6.2 Permanent Assets: Land and buildings are normally not funded. Allowed only in special cases with full justification.",
+  "6.3": "SECTION 6.3 Manpower (JRF, SRF, RA): Manpower should be provided by the agency. Project staff may be hired only if essential and only for project duration.",
+  "6.4": "SECTION 6.4 Additional Research Staff: If more JRFs, SRFs, or RAs are needed, full justification must be provided.",
+  "6.5": "SECTION 6.5 Contract Staff: Extra scientific or technical staff may be hired on contract for the duration of the project.",
+  "6.6": "SECTION 6.6 Seminars and Workshops: Up to Rs. 50,000 per implementing agency for seminars or workshops within India.",
+  "6.7": "SECTION 6.7 Consumables: Allowed with proper justification.",
+  "6.8": "SECTION 6.8 Contingency: Limited to 5 percent of the total revenue cost.",
+  "6.9": "SECTION 6.9 Travel (TA/DA): Up to Rs. 3 lakh per institute. Higher amounts require detailed justification.",
+  "6.10": "SECTION 6.10 Responsibility for Staff: Hiring and payment of project staff must follow the norms of the implementing agency.",
+  "6.11": "SECTION 6.11 Signatures: Proposal must have signatures of the Project Leader or Coordinator on every page.",
+  "6.12": "SECTION 6.12 Institute Overheads: May be charged as per the rules given in Annexure I, Para 4.14.",
+  "7.0": "SECTION 7.0 ITEMS NOT ALLOWED UNDER S&T GRANT",
+  "7.1": "SECTION 7.1 ITEMS NOT ALLOWED UNDER S&T GRANT: Land, buildings, furniture, fittings, calculators, computers, etc.",
+  "7.2": "SECTION 7.2 ITEMS NOT ALLOWED UNDER S&T GRANT: Salaries of permanent employees except special cases like CMPDI.",
+  "7.3": "SECTION 7.3 ITEMS NOT ALLOWED UNDER S&T GRANT: Honorarium to existing employees.",
+  "7.4": "SECTION 7.4 ITEMS NOT ALLOWED UNDER S&T GRANT: Foreign travel by Indian agencies.",
+  "7.5": "SECTION 7.5 ITEMS NOT ALLOWED UNDER S&T GRANT: Expenses for foreign experts beyond approved limits.",
+  "7.6": "SECTION 7.6 ITEMS NOT ALLOWED UNDER S&T GRANT: Purchase of staff car.",
+  "7.7": "SECTION 7.7 ITEMS NOT ALLOWED UNDER S&T GRANT: Hiring of peons, attendants, typists, etc.",
+  "7.8": "SECTION 7.8 ITEMS NOT ALLOWED UNDER S&T GRANT: Routine studies and routine operations.",
+  "10.0": "SECTION 10.0 EVALUATION OF S&T PROJECT PROPOSAL",
+  "10.1": "SECTION 10.1 The project should fall within the thrust areas of MoC.",
+  "10.2": "SECTION 10.2 The past track record and expertise of the agency for conducting the research should be examined.",
+  "10.3": "SECTION 10.3 The proposal should show progressive R&D input compared to earlier projects and similar work done in India or abroad.",
+  "10.4": "SECTION 10.4 The objectives should be clear and well defined.",
+  "10.5": "SECTION 10.5 The work programme should have detailed activities with a proper time frame.",
+  "10.6": "SECTION 10.6 The time frame for purchase of equipment and recruitment of manpower should be realistic.",
+  "10.7": "SECTION 10.7 Cost provisions should be clear and justified.",
+  "10.8": "SECTION 10.8 The proposal should state the benefits expected for the industry from the research work."
+};
+
+// Helper function to render text with section tooltips
+const renderTextWithTooltips = (text) => {
+  if (!text) return text;
+  
+  // Match patterns like "Section 6.9", "section 4.3", "Section 10.2", etc.
+  const sectionRegex = /\b[Ss]ection\s+(\d+\.\d+)\b/g;
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+  
+  while ((match = sectionRegex.exec(text)) !== null) {
+    const sectionNumber = match[1];
+    const sectionDefinition = SECTION_DEFINITIONS[sectionNumber];
+    
+    // Add text before the match
+    if (match.index > lastIndex) {
+      parts.push(text.substring(lastIndex, match.index));
+    }
+    
+    // Add the section with tooltip
+    if (sectionDefinition) {
+      parts.push(
+        <span key={match.index} className="relative inline-flex items-center group">
+          <span className="text-blue-600 font-semibold cursor-help underline decoration-dotted">
+            {match[0]}
+          </span>
+          <Info className="w-3 h-3 ml-1 text-blue-500" />
+          <span className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 w-64 p-3 text-xs text-white bg-gray-900 rounded-lg shadow-lg">
+            {sectionDefinition}
+            <span className="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-gray-900"></span>
+          </span>
+        </span>
+      );
+    } else {
+      parts.push(match[0]);
+    }
+    
+    lastIndex = match.index + match[0].length;
+  }
+  
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push(text.substring(lastIndex));
+  }
+  
+  return parts.length > 0 ? parts : text;
+};
 
 const ScoreCard = () => {
   const { id } = useParams();
@@ -1003,7 +1096,7 @@ Answer questions based ONLY on the above information. Do not add external knowle
                   {scoreData.finance.financial_risks.map((risk, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                      <span className="text-sm text-gray-700">{risk}</span>
+                      <span className="text-sm text-gray-700">{renderTextWithTooltips(risk)}</span>
                     </li>
                   ))}
                 </ul>
@@ -1127,7 +1220,7 @@ Answer questions based ONLY on the above information. Do not add external knowle
                   {scoreData.technical.technical_risks.map((risk, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                      <span className="text-sm text-gray-700">{risk}</span>
+                      <span className="text-sm text-gray-700">{renderTextWithTooltips(risk)}</span>
                     </li>
                   ))}
                 </ul>

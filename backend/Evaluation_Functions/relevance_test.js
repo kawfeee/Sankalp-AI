@@ -10,7 +10,44 @@ module.exports = async function relevance_Score(applicationNumber) {
     const { GoogleGenerativeAI } = await import('@google/generative-ai');
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-    const prompt = `\nYou are an expert evaluator for R&D proposals in the coal mining industry. Analyze the following proposal for RELEVANCE TO COAL INDUSTRY.\n\nPROPOSAL TEXT:\n${extractedText}\n\nEvaluate based on these criteria:\n1. Direct applicability to real problems in the coal industry\n2. Alignment with S&T-PRISM focus areas and Ministry of Mines priorities\n3. Impact on safety, environment, or regulatory compliance\n4. Improvement in mining efficiency, productivity, or cost reduction\n5. Adoptability by coal PSUs such as CMPDI, CIL, SCCL, etc.\n\nReturn ONLY a valid JSON object (no markdown, no extra text) with this exact structure:\n{\n  "relevance_score": <number between 0-10>,\n  "industry_applicability_score": <number between 0-10>,\n  "ministry_alignment_score": <number between 0-10>,\n  "safety_environmental_impact_score": <number between 0-10>,\n  "psu_adoptability_score": <number between 0-10>\n}\n`;
+    const prompt = `You are an expert evaluator for R&D proposals in the coal mining industry. 
+
+Analyze the following proposal for RELEVANCE TO COAL INDUSTRY.
+
+PROPOSAL TEXT: ${extractedText}
+
+Evaluate based on these criteria:
+1. Direct applicability to real problems in the coal industry
+2. Alignment with S&T-PRISM focus areas and Ministry of Mines priorities
+3. Impact on safety, environment, or regulatory compliance
+4. Improvement in mining efficiency, productivity, or cost reduction
+5. Adoptability by coal PSUs such as CMPDI, CIL, SCCL, etc.
+
+Refer to the following guidelines while evaluating:
+
+SECTION 4.0 THRUST AREAS OF RESEARCH PROJECTS
+
+4.1 Thrust areas for future research in the coal sector are listed on the MoC and CMPDI website.
+4.2 Advanced technologies and methods for improving production and productivity in underground and opencast mining.
+4.3 Improvement of safety, health, and environment.
+4.4 Waste to Wealth initiatives.
+4.5 Alternative uses of coal and clean coal technologies.
+4.6 Coal beneficiation and utilization.
+4.7 Exploration activities.
+4.8 Innovation and indigenization under the Make-in-India concept.
+4.9 Projects in any other area that benefit the coal industry are also permitted. Interdisciplinary, multidisciplinary, and transdisciplinary projects are encouraged.
+
+IMPORTANT: When identifying relevant areas in the "relevant_areas" array, naturally INCLUDE the relevant section numbers (e.g., "Section 4.1", "Section 4.3") within your sentences to make the output authentic and traceable to the guidelines above.
+
+Return ONLY a valid JSON object (no markdown, no extra text) with this exact structure:
+{
+    "relevance_score": <number between 0-10>,
+    "industry_applicability_score": <number between 0-10>,
+    "ministry_alignment_score": <number between 0-10>,
+    "safety_environmental_impact_score": <number between 0-10>,
+    "psu_adoptability_score": <number between 0-10>,
+    "relevant_areas": ["Area 1","Area 2","Area 3"] <under 25 words each>
+}`;
 
     const model = genAI.getGenerativeModel({ model: 'models/gemini-2.5-flash' });
     const result = await model.generateContent(prompt);
