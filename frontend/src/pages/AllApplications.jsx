@@ -83,6 +83,14 @@ const AllApplications = () => {
     }
   };
 
+  const getScoreColor = (score) => {
+    if (score === null || score === undefined) return 'text-gray-400';
+    if (score >= 0 && score <= 3) return 'text-red-600';
+    if (score > 3 && score <= 6) return 'text-orange-600';
+    if (score > 6 && score <= 10) return 'text-green-600';
+    return 'text-gray-400';
+  };
+
   // Get score for an application
   const getScore = (appNumber) => {
     const scorecard = scorecards.find(sc => sc.application_number === appNumber);
@@ -503,10 +511,11 @@ const AllApplications = () => {
           ) : (
             <div className="space-y-4">
               {/* Table Header */}
-              <div className="bg-red-50 rounded-xl shadow-sm p-4 hidden md:grid md:grid-cols-6 gap-4 font-bold text-gray-700 text-xs uppercase tracking-wider border border-red-100">
+              <div className="bg-red-50 rounded-xl shadow-sm p-4 hidden md:grid md:grid-cols-7 gap-4 font-bold text-gray-700 text-xs uppercase tracking-wider border border-red-100">
                 <div>APPLICATION NUMBER</div>
                 <div>PROJECT TITLE</div>
                 <div className="text-center">OVERALL SCORE</div>
+                <div className="text-center">RELEVANCE SCORE</div>
                 <div className="text-center">STATUS</div>
                 <div className="text-center">SUBMITTED DATE</div>
                 <div className="text-center">ACTION</div>
@@ -518,7 +527,7 @@ const AllApplications = () => {
                 return (
                   <div 
                     key={app._id} 
-                    className="bg-white rounded-2xl shadow-md hover:shadow-xl hover:border-red-200 transition-all p-4 md:grid md:grid-cols-6 md:gap-3 md:items-center border border-gray-100"
+                    className="bg-white rounded-2xl shadow-md hover:shadow-xl hover:border-red-200 transition-all p-4 md:grid md:grid-cols-7 md:gap-3 md:items-center border border-gray-100"
                   >
                     {/* Application Number */}
                     <div className="mb-2 md:mb-0">
@@ -536,10 +545,33 @@ const AllApplications = () => {
                     <div className="mb-2 md:mb-0 md:flex md:justify-center">
                       <div className="text-center">
                         <p className="text-xs text-gray-500 md:hidden mb-1 font-semibold">Overall Score</p>
-                        <p className="text-lg font-bold text-red-600">
+                        <p className={`text-lg font-bold ${getScoreColor(scorecard?.overall_score)}`}>
                           {scorecard?.overall_score ? scorecard.overall_score.toFixed(1) : 'N/A'}
                         </p>
                       </div>
+                    </div>
+
+                    {/* Relevance Score */}
+                    <div className="mb-2 md:mb-0 md:flex md:justify-center group relative">
+                      <div className="text-center">
+                        <p className="text-xs text-gray-500 md:hidden mb-1 font-semibold">Relevance Score</p>
+                        <p className={`text-lg font-bold cursor-help ${getScoreColor(scorecard?.relevance_score?.relevance_score)}`}>
+                          {scorecard?.relevance_score?.relevance_score ? scorecard.relevance_score.relevance_score.toFixed(1) : 'N/A'}
+                        </p>
+                      </div>
+                      {/* Tooltip with Relevant Areas */}
+                      {scorecard?.relevance_score?.relevant_areas && scorecard.relevance_score.relevant_areas.length > 0 && (
+                        <div className="hidden group-hover:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-900 text-white text-xs rounded-lg p-3 shadow-lg z-50">
+                          <div className="font-semibold mb-2">Relevant Areas:</div>
+                          <ul className="space-y-1 list-disc list-inside">
+                            {scorecard.relevance_score.relevant_areas.map((area, idx) => (
+                              <li key={idx} className="leading-relaxed">{area}</li>
+                            ))}
+                          </ul>
+                          {/* Arrow */}
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Status */}

@@ -35,7 +35,8 @@ const ScoreCardSchema = new mongoose.Schema({
     industry_applicability_score: Number,
     ministry_alignment_score: Number,
     safety_environmental_impact_score: Number,
-    psu_adoptability_score: Number
+    psu_adoptability_score: Number,
+    relevant_areas: [String]
   },
   overall_score: { type: Number, default: null },
   evaluator_remarks: { type: String, default: '' },

@@ -257,7 +257,8 @@ const ScoreCard = () => {
             industry_applicability_score: 0,
             ministry_alignment_score: 0,
             safety_environmental_impact_score: 0,
-            psu_adoptability_score: 0
+            psu_adoptability_score: 0,
+            relevant_areas: []
           }
         });
       }
@@ -1261,6 +1262,21 @@ Answer questions based ONLY on the above information. Do not add external knowle
                   <p className="text-2xl font-bold text-yellow-600">{scoreData.relevance.psu_adoptability_score}/10</p>
                 </div>
               </div>
+              
+              {/* Relevant Areas Section */}
+              {scoreData.relevance.relevant_areas && scoreData.relevance.relevant_areas.length > 0 && (
+                <div>
+                  <p className="text-sm font-semibold text-gray-700 mb-3">Relevant Areas:</p>
+                  <ul className="space-y-2">
+                    {scoreData.relevance.relevant_areas.map((area, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <Target className="w-4 h-4 text-yellow-600 mt-0.5 shrink-0" />
+                        <span className="text-sm text-gray-700">{renderTextWithTooltips(area)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         </div>

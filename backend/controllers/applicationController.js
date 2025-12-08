@@ -204,7 +204,8 @@ exports.createApplication = async (req, res) => {
               industry_applicability_score: Number(relevanceRes.industry_applicability_score) || null,
               ministry_alignment_score: Number(relevanceRes.ministry_alignment_score) || null,
               safety_environmental_impact_score: Number(relevanceRes.safety_environmental_impact_score) || null,
-              psu_adoptability_score: Number(relevanceRes.psu_adoptability_score) || null
+              psu_adoptability_score: Number(relevanceRes.psu_adoptability_score) || null,
+              relevant_areas: Array.isArray(relevanceRes.relevant_areas) ? relevanceRes.relevant_areas : []
             } : undefined
           };
 
