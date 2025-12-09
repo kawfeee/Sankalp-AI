@@ -135,6 +135,12 @@ const ScoreCard = () => {
   const [similarityData, setSimilarityData] = useState(null);
   const [loadingSimilarity, setLoadingSimilarity] = useState(false);
 
+  // Score card modal states
+  const [showFinanceModal, setShowFinanceModal] = useState(false);
+  const [showNoveltyModal, setShowNoveltyModal] = useState(false);
+  const [showTechnicalModal, setShowTechnicalModal] = useState(false);
+  const [showRelevanceModal, setShowRelevanceModal] = useState(false);
+
   // Mock score data (will be replaced with real backend data)
   const [scoreData, setScoreData] = useState({
     finance: {
@@ -275,6 +281,13 @@ const ScoreCard = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  // Get color class based on score
+  const getScoreColorClass = (score) => {
+    if (score >= 7) return { bg: 'bg-green-500', border: 'border-green-500', text: 'text-green-600', lightBg: 'bg-green-50', lightBorder: 'border-green-200' };
+    if (score >= 4) return { bg: 'bg-orange-500', border: 'border-orange-500', text: 'text-orange-600', lightBg: 'bg-orange-50', lightBorder: 'border-orange-200' };
+    return { bg: 'bg-red-500', border: 'border-red-500', text: 'text-red-600', lightBg: 'bg-red-50', lightBorder: 'border-red-200' };
   };
 
   const handleViewDetails = async (compareApplicationNumber, proposalIndex) => {
@@ -1399,225 +1412,77 @@ Answer questions based ONLY on the above information. Do not add external knowle
           </div>
         </div>
 
-        {/* Score Cards Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* CARD 1 - Finance Score */}
-          <div className="bg-white rounded-2xl shadow-lg border-2 border-red-100 p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center">
-                <DollarSign className="w-7 h-7 text-white" />
+        {/* Score Cards Grid - Compact */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {/* CARD 1 - Finance Score - Compact */}
+          <div 
+            onClick={() => setShowFinanceModal(true)}
+            className={`bg-white rounded-2xl shadow-lg border-2 p-6 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105 ${getScoreColorClass(scoreData.finance.financial_score).lightBorder}`}
+          >
+            <div className="text-center">
+              <div className={`w-16 h-16 ${getScoreColorClass(scoreData.finance.financial_score).bg} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+                <DollarSign className="w-8 h-8 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                Finance Score
-              </h2>
-            </div>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-red-50 p-4 rounded-xl border border-red-100">
-                  <p className="text-sm text-gray-600 mb-1 font-semibold">Financial Score</p>
-                  <p className="text-3xl font-bold text-red-600">{scoreData.finance.financial_score}/10</p>
-                </div>
-                <div className="bg-red-50 p-4 rounded-xl border border-red-100">
-                  <p className="text-sm text-gray-600 mb-1 font-semibold">Commercialization</p>
-                  <p className="text-3xl font-bold text-red-600">{scoreData.finance.commercialization_potential}/10</p>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-700 mb-3">Financial Risks:</p>
-                <ul className="space-y-2">
-                  {scoreData.finance.financial_risks.map((risk, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                      <span className="text-sm text-gray-700">{renderTextWithTooltips(risk)}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <h2 className="text-lg font-bold text-gray-900 mb-2">Finance Score</h2>
+              <p className={`text-5xl font-bold ${getScoreColorClass(scoreData.finance.financial_score).text} mb-2`}>
+                {scoreData.finance.financial_score}
+              </p>
+              <p className="text-sm text-gray-500">out of 10</p>
+              <p className="text-xs text-gray-400 mt-2">Click to view details</p>
             </div>
           </div>
 
-          {/* CARD 2 - Novelty Score */}
-          <div className="bg-white rounded-2xl shadow-lg border-2 border-orange-100 p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-orange-600 rounded-xl flex items-center justify-center">
-                <Lightbulb className="w-7 h-7 text-white" />
+          {/* CARD 2 - Novelty Score - Compact */}
+          <div 
+            onClick={() => setShowNoveltyModal(true)}
+            className={`bg-white rounded-2xl shadow-lg border-2 p-6 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105 ${getScoreColorClass(scoreData.novelty.novelty_score).lightBorder}`}
+          >
+            <div className="text-center">
+              <div className={`w-16 h-16 ${getScoreColorClass(scoreData.novelty.novelty_score).bg} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+                <Lightbulb className="w-8 h-8 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                Novelty Score
-              </h2>
-            </div>
-            <div className="space-y-6">
-              {/* Top Row: Originality Score and Proposals Checked */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-orange-50 p-6 rounded-xl border-2 border-orange-200">
-                  <p className="text-sm text-gray-600 mb-2 font-semibold">Originality Score</p>
-                  <p className="text-4xl font-bold text-orange-600">
-                    {scoreData.novelty.novelty_scores?.originality_score 
-                      ? (Number(scoreData.novelty.novelty_scores.originality_score) / 10).toFixed(2)
-                      : '0.00'}/10
-                  </p>
-                </div>
-                <div className="bg-orange-50 p-6 rounded-xl border-2 border-orange-200">
-                  <p className="text-sm text-gray-600 mb-2 font-semibold">Proposals Checked</p>
-                  <p className="text-4xl font-bold text-orange-600">{scoreData.novelty.total_proposals_checked ?? 0}</p>
-                </div>
-              </div>
-              
-              {/* Novelty Score Breakdown */}
-              <div>
-                <p className="text-base font-bold text-gray-800 mb-4">Novelty Breakdown:</p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-orange-50 p-5 rounded-xl border-2 border-orange-200">
-                    <p className="text-sm text-gray-600 mb-2 font-semibold">Technical Novelty</p>
-                    <p className="text-3xl font-bold text-orange-600">
-                      {scoreData.novelty.novelty_scores?.technical_novelty_score 
-                        ? (Number(scoreData.novelty.novelty_scores.technical_novelty_score) / 10).toFixed(2)
-                        : '0.00'}/10
-                    </p>
-                  </div>
-                  <div className="bg-orange-50 p-5 rounded-xl border-2 border-orange-200">
-                    <p className="text-sm text-gray-600 mb-2 font-semibold">Application Novelty</p>
-                    <p className="text-3xl font-bold text-orange-600">
-                      {scoreData.novelty.novelty_scores?.application_novelty_score 
-                        ? (Number(scoreData.novelty.novelty_scores.application_novelty_score) / 10).toFixed(2)
-                        : '0.00'}/10
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Similar Proposals */}
-              <div>
-                <p className="text-base font-bold text-gray-800 mb-4">Similar Proposals:</p>
-                {scoreData.novelty.similar_proposals && scoreData.novelty.similar_proposals.length > 0 ? (
-                  <div className="overflow-x-auto rounded-xl border-2 border-orange-200">
-                    <table className="w-full text-sm">
-                      <thead className="bg-orange-50">
-                        <tr className="border-b-2 border-orange-200">
-                          <th className="text-left py-3 px-4 text-gray-700 font-bold">Application Number</th>
-                          <th className="text-right py-3 px-4 text-gray-700 font-bold">Similarity %</th>
-                          <th className="text-center py-3 px-4 text-gray-700 font-bold">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white">
-                        {scoreData.novelty.similar_proposals.map((proposal, index) => (
-                          <tr key={index} className="border-b border-orange-100 hover:bg-orange-50 transition-colors">
-                            <td className="py-3 px-4 text-gray-700 font-medium">{proposal.application_number}</td>
-                            <td className="py-3 px-4 text-right text-orange-600 font-bold">{proposal.similarity_percentage}%</td>
-                            <td className="py-3 px-4 text-center">
-                              <button
-                                onClick={() => handleViewDetails(proposal.application_number, index)}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors shadow-sm"
-                              >
-                                <Eye className="w-4 h-4" />
-                                View Details
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-500 italic bg-gray-50 p-4 rounded-lg border border-gray-200">No similar proposals found</p>
-                )}
-              </div>
+              <h2 className="text-lg font-bold text-gray-900 mb-2">Novelty Score</h2>
+              <p className={`text-5xl font-bold ${getScoreColorClass(scoreData.novelty.novelty_score).text} mb-2`}>
+                {scoreData.novelty.novelty_score}
+              </p>
+              <p className="text-sm text-gray-500">out of 10</p>
+              <p className="text-xs text-gray-400 mt-2">Click to view details</p>
             </div>
           </div>
 
-          {/* CARD 3 - Technical Score */}
-          <div className="bg-white rounded-2xl shadow-lg border-2 border-green-100 p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center">
-                <Wrench className="w-7 h-7 text-white" />
+          {/* CARD 3 - Technical Score - Compact */}
+          <div 
+            onClick={() => setShowTechnicalModal(true)}
+            className={`bg-white rounded-2xl shadow-lg border-2 p-6 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105 ${getScoreColorClass(scoreData.technical.technical_score).lightBorder}`}
+          >
+            <div className="text-center">
+              <div className={`w-16 h-16 ${getScoreColorClass(scoreData.technical.technical_score).bg} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+                <Wrench className="w-8 h-8 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                Technical Score
-              </h2>
-            </div>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-green-50 p-4 rounded-xl border border-green-100">
-                  <p className="text-sm text-gray-600 mb-1 font-semibold">Technical Score</p>
-                  <p className="text-3xl font-bold text-green-600">{scoreData.technical.technical_score}/10</p>
-                </div>
-                <div className="bg-green-50 p-4 rounded-xl border border-green-100">
-                  <p className="text-sm text-gray-600 mb-1 font-semibold">Approach Clarity</p>
-                  <p className="text-3xl font-bold text-green-600">{scoreData.technical.approach_clarity_score}/10</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-green-50 p-3 rounded-xl border border-green-100">
-                  <p className="text-xs text-gray-600 mb-1 font-semibold">Resource Availability</p>
-                  <p className="text-2xl font-bold text-green-600">{scoreData.technical.resource_availability_score}/10</p>
-                </div>
-                <div className="bg-green-50 p-3 rounded-xl border border-green-100">
-                  <p className="text-xs text-gray-600 mb-1 font-semibold">Timeline Feasibility</p>
-                  <p className="text-2xl font-bold text-green-600">{scoreData.technical.timeline_feasibility_score}/10</p>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-700 mb-3">Technical Risks:</p>
-                <ul className="space-y-2">
-                  {scoreData.technical.technical_risks.map((risk, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                      <span className="text-sm text-gray-700">{renderTextWithTooltips(risk)}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <h2 className="text-lg font-bold text-gray-900 mb-2">Technical Score</h2>
+              <p className={`text-5xl font-bold ${getScoreColorClass(scoreData.technical.technical_score).text} mb-2`}>
+                {scoreData.technical.technical_score}
+              </p>
+              <p className="text-sm text-gray-500">out of 10</p>
+              <p className="text-xs text-gray-400 mt-2">Click to view details</p>
             </div>
           </div>
 
-          {/* CARD 4 - Relevance Score */}
-          <div className="bg-white rounded-2xl shadow-lg border-2 border-yellow-100 p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-yellow-600 rounded-xl flex items-center justify-center">
-                <Target className="w-7 h-7 text-white" />
+          {/* CARD 4 - Relevance Score - Compact */}
+          <div 
+            onClick={() => setShowRelevanceModal(true)}
+            className={`bg-white rounded-2xl shadow-lg border-2 p-6 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105 ${getScoreColorClass(scoreData.relevance.relevance_score).lightBorder}`}
+          >
+            <div className="text-center">
+              <div className={`w-16 h-16 ${getScoreColorClass(scoreData.relevance.relevance_score).bg} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+                <Target className="w-8 h-8 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                Relevance Score
-              </h2>
-            </div>
-            <div className="space-y-4">
-              <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100">
-                <p className="text-sm text-gray-600 mb-1 font-semibold">Overall Relevance Score</p>
-                <p className="text-4xl font-bold text-yellow-600">{scoreData.relevance.relevance_score}/10</p>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-yellow-50 p-3 rounded-xl border border-yellow-100">
-                  <p className="text-xs text-gray-600 mb-1 font-semibold">Industry Applicability</p>
-                  <p className="text-2xl font-bold text-yellow-600">{scoreData.relevance.industry_applicability_score}/10</p>
-                </div>
-                <div className="bg-yellow-50 p-3 rounded-xl border border-yellow-100">
-                  <p className="text-xs text-gray-600 mb-1 font-semibold">Ministry Alignment</p>
-                  <p className="text-2xl font-bold text-yellow-600">{scoreData.relevance.ministry_alignment_score}/10</p>
-                </div>
-                <div className="bg-yellow-50 p-3 rounded-xl border border-yellow-100">
-                  <p className="text-xs text-gray-600 mb-1 font-semibold">Safety & Environmental</p>
-                  <p className="text-2xl font-bold text-yellow-600">{scoreData.relevance.safety_environmental_impact_score}/10</p>
-                </div>
-                <div className="bg-yellow-50 p-3 rounded-xl border border-yellow-100">
-                  <p className="text-xs text-gray-600 mb-1 font-semibold">PSU Adoptability</p>
-                  <p className="text-2xl font-bold text-yellow-600">{scoreData.relevance.psu_adoptability_score}/10</p>
-                </div>
-              </div>
-              
-              {/* Relevant Areas Section */}
-              {scoreData.relevance.relevant_areas && scoreData.relevance.relevant_areas.length > 0 && (
-                <div>
-                  <p className="text-sm font-semibold text-gray-700 mb-3">Relevant Areas:</p>
-                  <ul className="space-y-2">
-                    {scoreData.relevance.relevant_areas.map((area, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <Target className="w-4 h-4 text-yellow-600 mt-0.5 shrink-0" />
-                        <span className="text-sm text-gray-700">{renderTextWithTooltips(area)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              <h2 className="text-lg font-bold text-gray-900 mb-2">Relevance Score</h2>
+              <p className={`text-5xl font-bold ${getScoreColorClass(scoreData.relevance.relevance_score).text} mb-2`}>
+                {scoreData.relevance.relevance_score}
+              </p>
+              <p className="text-sm text-gray-500">out of 10</p>
+              <p className="text-xs text-gray-400 mt-2">Click to view details</p>
             </div>
           </div>
         </div>
@@ -2714,6 +2579,256 @@ Answer questions based ONLY on the above information. Do not add external knowle
           background: rgba(239, 68, 68, 0.7);
         }
       `}</style>
+
+      {/* Finance Modal */}
+      {showFinanceModal && (
+        <div className="fixed inset-0 backdrop-blur-md bg-white bg-opacity-80 flex items-center justify-center z-40 p-4" onClick={() => setShowFinanceModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className={`${getScoreColorClass(scoreData.finance.financial_score).bg} px-8 py-6 flex items-center justify-between`}>
+              <div className="flex items-center gap-3">
+                <DollarSign className="w-8 h-8 text-white" />
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Finance Score</h2>
+                  <p className="text-white text-opacity-90 text-sm">Financial evaluation details</p>
+                </div>
+              </div>
+              <button onClick={() => setShowFinanceModal(false)} className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className={`${getScoreColorClass(scoreData.finance.financial_score).lightBg} p-6 rounded-xl border-2 ${getScoreColorClass(scoreData.finance.financial_score).lightBorder}`}>
+                    <p className="text-sm text-gray-600 mb-2 font-semibold">Financial Score</p>
+                    <p className={`text-4xl font-bold ${getScoreColorClass(scoreData.finance.financial_score).text}`}>{scoreData.finance.financial_score}/10</p>
+                  </div>
+                  <div className={`${getScoreColorClass(scoreData.finance.commercialization_potential).lightBg} p-6 rounded-xl border-2 ${getScoreColorClass(scoreData.finance.commercialization_potential).lightBorder}`}>
+                    <p className="text-sm text-gray-600 mb-2 font-semibold">Commercialization Potential</p>
+                    <p className={`text-4xl font-bold ${getScoreColorClass(scoreData.finance.commercialization_potential).text}`}>{scoreData.finance.commercialization_potential}/10</p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-gray-900 mb-4">Financial Risks:</p>
+                  <ul className="space-y-3">
+                    {scoreData.finance.financial_risks.map((risk, index) => (
+                      <li key={index} className="flex items-start gap-3 bg-red-50 p-4 rounded-lg border border-red-200">
+                        <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
+                        <span className="text-sm text-gray-700">{renderTextWithTooltips(risk)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Novelty Modal */}
+      {showNoveltyModal && (
+        <div className="fixed inset-0 backdrop-blur-md bg-white bg-opacity-80 flex items-center justify-center z-40 p-4" onClick={() => setShowNoveltyModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className={`${getScoreColorClass(scoreData.novelty.novelty_score).bg} px-8 py-6 flex items-center justify-between`}>
+              <div className="flex items-center gap-3">
+                <Lightbulb className="w-8 h-8 text-white" />
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Novelty Score</h2>
+                  <p className="text-white text-opacity-90 text-sm">Innovation and originality details</p>
+                </div>
+              </div>
+              <button onClick={() => setShowNoveltyModal(false)} className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className={`${getScoreColorClass(scoreData.novelty.novelty_scores?.originality_score ? Number(scoreData.novelty.novelty_scores.originality_score) / 10 : 0).lightBg} p-6 rounded-xl border-2 ${getScoreColorClass(scoreData.novelty.novelty_scores?.originality_score ? Number(scoreData.novelty.novelty_scores.originality_score) / 10 : 0).lightBorder}`}>
+                    <p className="text-sm text-gray-600 mb-2 font-semibold">Originality Score</p>
+                    <p className={`text-4xl font-bold ${getScoreColorClass(scoreData.novelty.novelty_scores?.originality_score ? Number(scoreData.novelty.novelty_scores.originality_score) / 10 : 0).text}`}>
+                      {scoreData.novelty.novelty_scores?.originality_score ? (Number(scoreData.novelty.novelty_scores.originality_score) / 10).toFixed(2) : '0.00'}/10
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 p-6 rounded-xl border-2 border-gray-200">
+                    <p className="text-sm text-gray-600 mb-2 font-semibold">Proposals Checked</p>
+                    <p className="text-4xl font-bold text-gray-600">{scoreData.novelty.total_proposals_checked ?? 0}</p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-gray-900 mb-4">Novelty Breakdown:</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className={`${getScoreColorClass(scoreData.novelty.novelty_scores?.technical_novelty_score ? Number(scoreData.novelty.novelty_scores.technical_novelty_score) / 10 : 0).lightBg} p-6 rounded-xl border-2 ${getScoreColorClass(scoreData.novelty.novelty_scores?.technical_novelty_score ? Number(scoreData.novelty.novelty_scores.technical_novelty_score) / 10 : 0).lightBorder}`}>
+                      <p className="text-sm text-gray-600 mb-2 font-semibold">Technical Novelty</p>
+                      <p className={`text-3xl font-bold ${getScoreColorClass(scoreData.novelty.novelty_scores?.technical_novelty_score ? Number(scoreData.novelty.novelty_scores.technical_novelty_score) / 10 : 0).text}`}>
+                        {scoreData.novelty.novelty_scores?.technical_novelty_score ? (Number(scoreData.novelty.novelty_scores.technical_novelty_score) / 10).toFixed(2) : '0.00'}/10
+                      </p>
+                    </div>
+                    <div className={`${getScoreColorClass(scoreData.novelty.novelty_scores?.application_novelty_score ? Number(scoreData.novelty.novelty_scores.application_novelty_score) / 10 : 0).lightBg} p-6 rounded-xl border-2 ${getScoreColorClass(scoreData.novelty.novelty_scores?.application_novelty_score ? Number(scoreData.novelty.novelty_scores.application_novelty_score) / 10 : 0).lightBorder}`}>
+                      <p className="text-sm text-gray-600 mb-2 font-semibold">Application Novelty</p>
+                      <p className={`text-3xl font-bold ${getScoreColorClass(scoreData.novelty.novelty_scores?.application_novelty_score ? Number(scoreData.novelty.novelty_scores.application_novelty_score) / 10 : 0).text}`}>
+                        {scoreData.novelty.novelty_scores?.application_novelty_score ? (Number(scoreData.novelty.novelty_scores.application_novelty_score) / 10).toFixed(2) : '0.00'}/10
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-gray-900 mb-4">Similar Proposals:</p>
+                  {scoreData.novelty.similar_proposals && scoreData.novelty.similar_proposals.length > 0 ? (
+                    <div className="overflow-x-auto rounded-xl border-2 border-orange-200">
+                      <table className="w-full text-sm">
+                        <thead className="bg-orange-50">
+                          <tr className="border-b-2 border-orange-200">
+                            <th className="text-left py-3 px-4 text-gray-700 font-bold">Application Number</th>
+                            <th className="text-right py-3 px-4 text-gray-700 font-bold">Similarity %</th>
+                            <th className="text-center py-3 px-4 text-gray-700 font-bold">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white">
+                          {scoreData.novelty.similar_proposals.map((proposal, index) => (
+                            <tr key={index} className="border-b border-orange-100 hover:bg-orange-50 transition-colors">
+                              <td className="py-3 px-4 text-gray-700 font-medium">{proposal.application_number}</td>
+                              <td className="py-3 px-4 text-right text-orange-600 font-bold">{proposal.similarity_percentage}%</td>
+                              <td className="py-3 px-4 text-center">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleViewDetails(proposal.application_number, index); }}
+                                  className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors shadow-sm"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                  View Details
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 italic bg-gray-50 p-4 rounded-lg border border-gray-200">No similar proposals found</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Technical Modal */}
+      {showTechnicalModal && (
+        <div className="fixed inset-0 backdrop-blur-md bg-white bg-opacity-80 flex items-center justify-center z-40 p-4" onClick={() => setShowTechnicalModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className={`${getScoreColorClass(scoreData.technical.technical_score).bg} px-8 py-6 flex items-center justify-between`}>
+              <div className="flex items-center gap-3">
+                <Wrench className="w-8 h-8 text-white" />
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Technical Score</h2>
+                  <p className="text-white text-opacity-90 text-sm">Technical feasibility and approach details</p>
+                </div>
+              </div>
+              <button onClick={() => setShowTechnicalModal(false)} className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className={`${getScoreColorClass(scoreData.technical.technical_score).lightBg} p-6 rounded-xl border-2 ${getScoreColorClass(scoreData.technical.technical_score).lightBorder}`}>
+                    <p className="text-sm text-gray-600 mb-2 font-semibold">Technical Score</p>
+                    <p className={`text-4xl font-bold ${getScoreColorClass(scoreData.technical.technical_score).text}`}>{scoreData.technical.technical_score}/10</p>
+                  </div>
+                  <div className={`${getScoreColorClass(scoreData.technical.approach_clarity_score).lightBg} p-6 rounded-xl border-2 ${getScoreColorClass(scoreData.technical.approach_clarity_score).lightBorder}`}>
+                    <p className="text-sm text-gray-600 mb-2 font-semibold">Approach Clarity</p>
+                    <p className={`text-4xl font-bold ${getScoreColorClass(scoreData.technical.approach_clarity_score).text}`}>{scoreData.technical.approach_clarity_score}/10</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className={`${getScoreColorClass(scoreData.technical.resource_availability_score).lightBg} p-5 rounded-xl border-2 ${getScoreColorClass(scoreData.technical.resource_availability_score).lightBorder}`}>
+                    <p className="text-sm text-gray-600 mb-2 font-semibold">Resource Availability</p>
+                    <p className={`text-3xl font-bold ${getScoreColorClass(scoreData.technical.resource_availability_score).text}`}>{scoreData.technical.resource_availability_score}/10</p>
+                  </div>
+                  <div className={`${getScoreColorClass(scoreData.technical.timeline_feasibility_score).lightBg} p-5 rounded-xl border-2 ${getScoreColorClass(scoreData.technical.timeline_feasibility_score).lightBorder}`}>
+                    <p className="text-sm text-gray-600 mb-2 font-semibold">Timeline Feasibility</p>
+                    <p className={`text-3xl font-bold ${getScoreColorClass(scoreData.technical.timeline_feasibility_score).text}`}>{scoreData.technical.timeline_feasibility_score}/10</p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-gray-900 mb-4">Technical Risks:</p>
+                  <ul className="space-y-3">
+                    {scoreData.technical.technical_risks.map((risk, index) => (
+                      <li key={index} className="flex items-start gap-3 bg-red-50 p-4 rounded-lg border border-red-200">
+                        <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
+                        <span className="text-sm text-gray-700">{renderTextWithTooltips(risk)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Relevance Modal */}
+      {showRelevanceModal && (
+        <div className="fixed inset-0 backdrop-blur-md bg-white bg-opacity-80 flex items-center justify-center z-40 p-4" onClick={() => setShowRelevanceModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className={`${getScoreColorClass(scoreData.relevance.relevance_score).bg} px-8 py-6 flex items-center justify-between`}>
+              <div className="flex items-center gap-3">
+                <Target className="w-8 h-8 text-white" />
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Relevance Score</h2>
+                  <p className="text-white text-opacity-90 text-sm">Relevance and alignment details</p>
+                </div>
+              </div>
+              <button onClick={() => setShowRelevanceModal(false)} className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <div className="space-y-6">
+                <div className={`${getScoreColorClass(scoreData.relevance.relevance_score).lightBg} p-6 rounded-xl border-2 ${getScoreColorClass(scoreData.relevance.relevance_score).lightBorder}`}>
+                  <p className="text-sm text-gray-600 mb-2 font-semibold">Overall Relevance Score</p>
+                  <p className={`text-5xl font-bold ${getScoreColorClass(scoreData.relevance.relevance_score).text}`}>{scoreData.relevance.relevance_score}/10</p>
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-gray-900 mb-4">Breakdown:</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className={`${getScoreColorClass(scoreData.relevance.industry_applicability_score).lightBg} p-5 rounded-xl border-2 ${getScoreColorClass(scoreData.relevance.industry_applicability_score).lightBorder}`}>
+                      <p className="text-sm text-gray-600 mb-2 font-semibold">Industry Applicability</p>
+                      <p className={`text-3xl font-bold ${getScoreColorClass(scoreData.relevance.industry_applicability_score).text}`}>{scoreData.relevance.industry_applicability_score}/10</p>
+                    </div>
+                    <div className={`${getScoreColorClass(scoreData.relevance.ministry_alignment_score).lightBg} p-5 rounded-xl border-2 ${getScoreColorClass(scoreData.relevance.ministry_alignment_score).lightBorder}`}>
+                      <p className="text-sm text-gray-600 mb-2 font-semibold">Ministry Alignment</p>
+                      <p className={`text-3xl font-bold ${getScoreColorClass(scoreData.relevance.ministry_alignment_score).text}`}>{scoreData.relevance.ministry_alignment_score}/10</p>
+                    </div>
+                    <div className={`${getScoreColorClass(scoreData.relevance.safety_environmental_impact_score).lightBg} p-5 rounded-xl border-2 ${getScoreColorClass(scoreData.relevance.safety_environmental_impact_score).lightBorder}`}>
+                      <p className="text-sm text-gray-600 mb-2 font-semibold">Safety & Environmental Impact</p>
+                      <p className={`text-3xl font-bold ${getScoreColorClass(scoreData.relevance.safety_environmental_impact_score).text}`}>{scoreData.relevance.safety_environmental_impact_score}/10</p>
+                    </div>
+                    <div className={`${getScoreColorClass(scoreData.relevance.psu_adoptability_score).lightBg} p-5 rounded-xl border-2 ${getScoreColorClass(scoreData.relevance.psu_adoptability_score).lightBorder}`}>
+                      <p className="text-sm text-gray-600 mb-2 font-semibold">PSU Adoptability</p>
+                      <p className={`text-3xl font-bold ${getScoreColorClass(scoreData.relevance.psu_adoptability_score).text}`}>{scoreData.relevance.psu_adoptability_score}/10</p>
+                    </div>
+                  </div>
+                </div>
+                {scoreData.relevance.relevant_areas && scoreData.relevance.relevant_areas.length > 0 && (
+                  <div>
+                    <p className="text-lg font-bold text-gray-900 mb-4">Relevant Areas:</p>
+                    <ul className="space-y-3">
+                      {scoreData.relevance.relevant_areas.map((area, index) => (
+                        <li key={index} className="flex items-start gap-3 bg-green-50 p-4 rounded-lg border border-green-200">
+                          <Target className="w-5 h-5 text-green-600 mt-0.5 shrink-0" />
+                          <span className="text-sm text-gray-700">{renderTextWithTooltips(area)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
