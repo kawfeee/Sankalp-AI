@@ -3,8 +3,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { Bar } from 'react-chartjs-2';
-import { Search, Filter, ArrowUpDown, ArrowLeft, TrendingUp, FileText, Clock, CheckCircle, XCircle, AlertCircle, Eye, ClipboardList, Loader2, LogOut, Home, BarChart3, PieChart } from 'lucide-react';
+import { Search, Filter, ArrowUpDown, ArrowLeft, TrendingUp, FileText, Clock, CheckCircle, XCircle, AlertCircle, Eye, ClipboardList, Loader2, LogOut, Home, BarChart3, PieChart, Download, ChevronDown } from 'lucide-react';
 import NationalEmblem from '../assets/National Emblem.png';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -32,13 +35,26 @@ const AllApplications = () => {
   const [scorecards, setScorecards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [stateFilter, setStateFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('submission_time');
   const [sortOrder, setSortOrder] = useState('desc'); // desc = latest first
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showDownloadMenu && !event.target.closest('.download-menu-container')) {
+        setShowDownloadMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showDownloadMenu]);
 
   const fetchData = async () => {
     try {
@@ -143,6 +159,11 @@ const AllApplications = () => {
       filtered = filtered.filter(app => app.status === filter);
     }
 
+    // Apply state filter
+    if (stateFilter !== 'all') {
+      filtered = filtered.filter(app => app.state === stateFilter);
+    }
+
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -197,6 +218,279 @@ const AllApplications = () => {
 
   const filteredApplications = getFilteredAndSortedApplications();
 
+  // Generate PDF Report with Charts and Statistics
+  const generatePDFReport = async () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    let yPosition = 20;
+
+    // Helper function to add new page if needed
+    const checkAndAddPage = (requiredSpace) => {
+      if (yPosition + requiredSpace > pageHeight - 20) {
+        doc.addPage();
+        yPosition = 20;
+        return true;
+      }
+      return false;
+    };
+
+    // Title and Header
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('All Applications Report', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 10;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 5;
+    doc.text(`Total Applications: ${filteredApplications.length}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 15;
+
+    // Statistics Section
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(220, 38, 38);
+    doc.text('Statistics & Benchmarks', 14, yPosition);
+    yPosition += 10;
+
+    // Highest Scores Box
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Highest Scores:', 14, yPosition);
+    yPosition += 7;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    const highestScores = [
+      `Overall Score: ${benchmarks.highestOverallScore}`,
+      `Finance Score: ${benchmarks.highestFinance}`,
+      `Novelty Score: ${benchmarks.highestNovelty}`,
+      `Technical Score: ${benchmarks.highestTechnical}`,
+      `Relevance Score: ${benchmarks.highestRelevance}`
+    ];
+
+    highestScores.forEach(score => {
+      doc.text(score, 20, yPosition);
+      yPosition += 6;
+    });
+    yPosition += 5;
+
+    // Status Distribution
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Status Distribution:', 14, yPosition);
+    yPosition += 7;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(16, 185, 129);
+    doc.text(`✓ Approved: ${benchmarks.totalApproved}`, 20, yPosition);
+    yPosition += 6;
+    doc.setTextColor(239, 68, 68);
+    doc.text(`✗ Rejected: ${benchmarks.totalRejected}`, 20, yPosition);
+    yPosition += 6;
+    doc.setTextColor(245, 158, 11);
+    doc.text(`⧗ Pending: ${benchmarks.totalPending}`, 20, yPosition);
+    yPosition += 6;
+    doc.setTextColor(100, 116, 139);
+    doc.text(`⟳ Under Review: ${benchmarks.totalUnderReview}`, 20, yPosition);
+    yPosition += 15;
+
+    doc.setTextColor(0, 0, 0);
+
+    // Bar Chart - Highest Scores by Category
+    checkAndAddPage(70);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Highest Scores by Category', 14, yPosition);
+    yPosition += 10;
+
+    const barChartData = [
+      { category: 'Finance', score: parseFloat(benchmarks.highestFinance) },
+      { category: 'Novelty', score: parseFloat(benchmarks.highestNovelty) },
+      { category: 'Technical', score: parseFloat(benchmarks.highestTechnical) },
+      { category: 'Relevance', score: parseFloat(benchmarks.highestRelevance) }
+    ];
+
+    const chartWidth = 170;
+    const chartHeight = 50;
+    const barWidth = 30;
+    const chartX = 20;
+    const chartY = yPosition;
+
+    // Draw axes
+    doc.setDrawColor(200, 200, 200);
+    doc.line(chartX, chartY + chartHeight, chartX + chartWidth, chartY + chartHeight); // X-axis
+    doc.line(chartX, chartY, chartX, chartY + chartHeight); // Y-axis
+
+    // Draw bars
+    const colors = [
+      [220, 38, 38],    // Red
+      [249, 115, 22],   // Orange
+      [34, 197, 94],    // Green
+      [234, 179, 8]     // Yellow
+    ];
+
+    barChartData.forEach((item, index) => {
+      const barHeight = (item.score / 10) * chartHeight;
+      const x = chartX + 15 + (index * 40);
+      const y = chartY + chartHeight - barHeight;
+      
+      doc.setFillColor(...colors[index]);
+      doc.rect(x, y, barWidth, barHeight, 'F');
+      
+      // Category labels
+      doc.setFontSize(8);
+      doc.text(item.category, x + barWidth / 2, chartY + chartHeight + 5, { align: 'center' });
+      
+      // Score labels
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text(item.score.toFixed(1), x + barWidth / 2, y - 2, { align: 'center' });
+    });
+
+    yPosition += chartHeight + 20;
+
+    // Applications Table
+    checkAndAddPage(50);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(220, 38, 38);
+    doc.text('Applications Details', 14, yPosition);
+    yPosition += 10;
+
+    const tableData = filteredApplications.map((app, index) => {
+      const scorecard = getScore(app.applicationNumber);
+      return [
+        index + 1,
+        app.applicationNumber || 'N/A',
+        (app.projectTitle?.substring(0, 40) || 'N/A') + (app.projectTitle?.length > 40 ? '...' : ''),
+        app.institutionName || 'N/A',
+        app.state || 'N/A',
+        scorecard?.overall_score?.toFixed(2) || 'N/A',
+        app.status || 'N/A'
+      ];
+    });
+
+    autoTable(doc, {
+      startY: yPosition,
+      head: [['#', 'App No.', 'Title', 'Institution', 'State', 'Score', 'Status']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [220, 38, 38],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 9
+      },
+      bodyStyles: {
+        fontSize: 8
+      },
+      columnStyles: {
+        0: { cellWidth: 10 },
+        1: { cellWidth: 25 },
+        2: { cellWidth: 50 },
+        3: { cellWidth: 35 },
+        4: { cellWidth: 25 },
+        5: { cellWidth: 20 },
+        6: { cellWidth: 20 }
+      },
+      margin: { left: 14, right: 14 }
+    });
+
+    // Footer on all pages
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(
+        `Page ${i} of ${pageCount}`,
+        pageWidth / 2,
+        pageHeight - 10,
+        { align: 'center' }
+      );
+      doc.text(
+        'Ministry of Coal - Government of India',
+        pageWidth / 2,
+        pageHeight - 5,
+        { align: 'center' }
+      );
+    }
+
+    // Save PDF
+    doc.save(`All_Applications_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+    setShowDownloadMenu(false);
+  };
+
+  // Generate Excel Report
+  const generateExcelReport = () => {
+    // Applications Data Sheet
+    const applicationsData = [
+      [
+        'Application Number',
+        'Applicant Name',
+        'Institution Name',
+        'City Name',
+        'State',
+        'Overall Score',
+        'Financial Score',
+        'Technical Score',
+        'Relevance Score',
+        'Novelty Score',
+        'Status',
+        'Remarks'
+      ],
+      ...filteredApplications.map((app) => {
+        const scorecard = getScore(app.applicationNumber);
+        return [
+          app.applicationNumber || 'N/A',
+          app.userId?.name || app.applicantName || 'N/A',
+          app.institutionName || 'N/A',
+          app.city || 'N/A',
+          app.state || 'N/A',
+          scorecard?.overall_score?.toFixed(2) || 'N/A',
+          scorecard?.finance_score?.finance_score?.toFixed(2) || 'N/A',
+          scorecard?.technical_score?.technical_score?.toFixed(2) || 'N/A',
+          scorecard?.relevance_score?.relevance_score?.toFixed(2) || 'N/A',
+          scorecard?.novelty_score?.novelty_score?.toFixed(2) || 'N/A',
+          app.status || 'N/A',
+          scorecard?.overall_score?.remarks || ''
+        ];
+      })
+    ];
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(applicationsData);
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 20 },  // Application Number
+      { wch: 25 },  // Applicant Name
+      { wch: 35 },  // Institution Name
+      { wch: 20 },  // City Name
+      { wch: 20 },  // State
+      { wch: 15 },  // Overall Score
+      { wch: 15 },  // Financial Score
+      { wch: 15 },  // Technical Score
+      { wch: 15 },  // Relevance Score
+      { wch: 15 },  // Novelty Score
+      { wch: 15 },  // Status
+      { wch: 40 }   // Remarks
+    ];
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Applications');
+
+    // Save Excel file
+    XLSX.writeFile(wb, `All_Applications_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
+    setShowDownloadMenu(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navbar */}
@@ -244,7 +538,7 @@ const AllApplications = () => {
 
         {/* SECTION 1: Search, Filter, and Sort Bar */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Search Bar */}
             <div className="lg:col-span-1">
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
@@ -276,6 +570,57 @@ const AllApplications = () => {
                 <option value="approved">Approved</option>
                 <option value="rejected">Rejected</option>
                 <option value="under-review">Under Review</option>
+              </select>
+            </div>
+
+            {/* State/Region Filter */}
+            <div>
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                <Filter className="w-4 h-4 text-red-600" />
+                Region Filter
+              </label>
+              <select
+                value={stateFilter}
+                onChange={(e) => setStateFilter(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+              >
+                <option value="all">All Regions</option>
+                <option value="Andhra Pradesh">Andhra Pradesh</option>
+                <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                <option value="Assam">Assam</option>
+                <option value="Bihar">Bihar</option>
+                <option value="Chhattisgarh">Chhattisgarh</option>
+                <option value="Goa">Goa</option>
+                <option value="Gujarat">Gujarat</option>
+                <option value="Haryana">Haryana</option>
+                <option value="Himachal Pradesh">Himachal Pradesh</option>
+                <option value="Jharkhand">Jharkhand</option>
+                <option value="Karnataka">Karnataka</option>
+                <option value="Kerala">Kerala</option>
+                <option value="Madhya Pradesh">Madhya Pradesh</option>
+                <option value="Maharashtra">Maharashtra</option>
+                <option value="Manipur">Manipur</option>
+                <option value="Meghalaya">Meghalaya</option>
+                <option value="Mizoram">Mizoram</option>
+                <option value="Nagaland">Nagaland</option>
+                <option value="Odisha">Odisha</option>
+                <option value="Punjab">Punjab</option>
+                <option value="Rajasthan">Rajasthan</option>
+                <option value="Sikkim">Sikkim</option>
+                <option value="Tamil Nadu">Tamil Nadu</option>
+                <option value="Telangana">Telangana</option>
+                <option value="Tripura">Tripura</option>
+                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                <option value="Uttarakhand">Uttarakhand</option>
+                <option value="West Bengal">West Bengal</option>
+                <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                <option value="Chandigarh">Chandigarh</option>
+                <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                <option value="Ladakh">Ladakh</option>
+                <option value="Lakshadweep">Lakshadweep</option>
+                <option value="Puducherry">Puducherry</option>
               </select>
             </div>
 
@@ -491,9 +836,42 @@ const AllApplications = () => {
               </div>
               <h2 className="text-2xl font-bold text-gray-900">R&D Proposals</h2>
             </div>
-            <p className="text-gray-600">
-              Showing <span className="font-bold text-red-600">{filteredApplications.length}</span> of {applications.length} applications
-            </p>
+            <div className="flex items-center gap-4">
+              {/* Download Report Dropdown */}
+              <div className="relative download-menu-container">
+                <button
+                  onClick={() => setShowDownloadMenu(!showDownloadMenu)}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all shadow-md font-medium"
+                >
+                  <Download className="w-4 h-4" />
+                  Download Report
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showDownloadMenu ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {showDownloadMenu && (
+                  <div className="absolute top-full mt-2 right-0 bg-white border border-gray-200 rounded-xl shadow-lg z-50 min-w-[200px] overflow-hidden">
+                    <button
+                      onClick={generatePDFReport}
+                      className="w-full px-4 py-3 text-left hover:bg-red-50 transition-colors flex items-center gap-2 border-b border-gray-100"
+                    >
+                      <FileText className="w-4 h-4 text-red-600" />
+                      <span className="font-medium text-gray-700">Download as PDF</span>
+                    </button>
+                    <button
+                      onClick={generateExcelReport}
+                      className="w-full px-4 py-3 text-left hover:bg-red-50 transition-colors flex items-center gap-2"
+                    >
+                      <BarChart3 className="w-4 h-4 text-green-600" />
+                      <span className="font-medium text-gray-700">Download as Excel</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+              
+              <p className="text-gray-600">
+                Showing <span className="font-bold text-red-600">{filteredApplications.length}</span> of {applications.length} applications
+              </p>
+            </div>
           </div>
 
           {loading ? (
@@ -527,7 +905,13 @@ const AllApplications = () => {
                 return (
                   <div 
                     key={app._id} 
-                    className="bg-white rounded-2xl shadow-md hover:shadow-xl hover:border-red-200 transition-all p-4 md:grid md:grid-cols-7 md:gap-3 md:items-center border border-gray-100"
+                    onClick={() => {
+                      navigate(`/evaluator/application/${app._id}`);
+                      setTimeout(() => {
+                        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                      }, 100);
+                    }}
+                    className="bg-white rounded-2xl shadow-md hover:shadow-xl hover:border-red-200 transition-all p-4 md:grid md:grid-cols-7 md:gap-3 md:items-center border border-gray-100 cursor-pointer"
                   >
                     {/* Application Number */}
                     <div className="mb-2 md:mb-0">
@@ -596,14 +980,23 @@ const AllApplications = () => {
                     {/* Action - Two Buttons */}
                     <div className="flex flex-col gap-2 md:flex-row md:justify-center md:flex-wrap">
                       <button
-                        onClick={() => navigate(`/evaluator/application/${app._id}`)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/evaluator/application/${app._id}`);
+                          setTimeout(() => {
+                            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                          }, 100);
+                        }}
                         className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-gray-600 text-white rounded-lg text-xs font-semibold hover:bg-gray-700 transition-all hover:shadow-md whitespace-nowrap"
                       >
                         <Eye className="w-3 h-3" />
                         View Application
                       </button>
                       <button
-                        onClick={() => navigate(`/evaluator/scorecard/${app._id}`)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/evaluator/scorecard/${app._id}`);
+                        }}
                         className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-red-600 text-white rounded-lg text-xs font-semibold hover:bg-red-700 transition-all hover:shadow-md whitespace-nowrap"
                       >
                         <ClipboardList className="w-3 h-3" />

@@ -245,16 +245,43 @@ const ApplicationUpdates = () => {
       
       autoTable(pdf, {
         startY: currentY,
-        head: [['Metric', 'Value']],
+        head: [['Metric', 'Score']],
         body: [
-          ['Novelty Score', `${Number(scoreData.novelty.novelty_score).toFixed(1)}/10`],
+          ['Overall Novelty Score', `${Number(scoreData.novelty.novelty_score).toFixed(1)}/10`],
+          ['Originality Score', `${scoreData.novelty.novelty_scores?.originality_score ? Number(scoreData.novelty.novelty_scores.originality_score).toFixed(1) : '0.0'}/10`],
+          ['Technical Novelty Score', `${scoreData.novelty.novelty_scores?.technical_novelty_score ? Number(scoreData.novelty.novelty_scores.technical_novelty_score).toFixed(1) : '0.0'}/10`],
+          ['Application Novelty Score', `${scoreData.novelty.novelty_scores?.application_novelty_score ? Number(scoreData.novelty.novelty_scores.application_novelty_score).toFixed(1) : '0.0'}/10`],
           ['Total Proposals Checked', scoreData.novelty.total_proposals_checked || 0]
         ],
         theme: 'striped',
         headStyles: { fillColor: [139, 92, 246] },
         margin: { left: 15, right: 15 }
       });
-      currentY = pdf.lastAutoTable.finalY + 15;
+      currentY = pdf.lastAutoTable.finalY + 8;
+
+      // Similar Proposals Table
+      if (scoreData.novelty.similar_proposals && scoreData.novelty.similar_proposals.length > 0) {
+        checkSpace(30);
+        pdf.setFontSize(12);
+        pdf.setTextColor(0, 0, 0);
+        pdf.text('Similar Proposals:', 15, currentY);
+        currentY += 6;
+        
+        autoTable(pdf, {
+          startY: currentY,
+          head: [['Application Number', 'Similarity %']],
+          body: scoreData.novelty.similar_proposals.map(proposal => [
+            proposal.application_number,
+            `${proposal.similarity_percentage}%`
+          ]),
+          theme: 'grid',
+          headStyles: { fillColor: [139, 92, 246] },
+          margin: { left: 15, right: 15 }
+        });
+        currentY = pdf.lastAutoTable.finalY + 15;
+      } else {
+        currentY += 15;
+      }
 
       // Technical Score Section
       checkSpace(40);
@@ -306,16 +333,35 @@ const ApplicationUpdates = () => {
         startY: currentY,
         head: [['Metric', 'Score']],
         body: [
-          ['Relevance Score', `${scoreData.relevance.relevance_score}/10`],
+          ['Overall Relevance Score', `${scoreData.relevance.relevance_score}/10`],
           ['Industry Applicability', `${scoreData.relevance.industry_applicability_score}/10`],
           ['Ministry Alignment', `${scoreData.relevance.ministry_alignment_score}/10`],
-          ['Safety & Environmental', `${scoreData.relevance.safety_environmental_impact_score}/10`],
+          ['Safety & Environmental Impact', `${scoreData.relevance.safety_environmental_impact_score}/10`],
           ['PSU Adoptability', `${scoreData.relevance.psu_adoptability_score}/10`]
         ],
         theme: 'striped',
         headStyles: { fillColor: [245, 158, 11] },
         margin: { left: 15, right: 15 }
       });
+      currentY = pdf.lastAutoTable.finalY + 8;
+
+      // Relevant Areas
+      if (scoreData.relevance.relevant_areas && scoreData.relevance.relevant_areas.length > 0) {
+        checkSpace(20);
+        pdf.setFontSize(12);
+        pdf.setTextColor(0, 0, 0);
+        pdf.text('Relevant Areas:', 15, currentY);
+        currentY += 6;
+        
+        scoreData.relevance.relevant_areas.forEach((area) => {
+          checkSpace(8);
+          pdf.setFontSize(10);
+          const splitText = pdf.splitTextToSize(`• ${area}`, pageWidth - 40);
+          pdf.text(splitText, 20, currentY);
+          currentY += splitText.length * 4 + 2;
+        });
+        currentY += 5;
+      }
 
       // Footer on all pages
       const totalPages = pdf.internal.getNumberOfPages();

@@ -1,0 +1,62 @@
+{
+  "Originality Matches": [
+    {
+      "match_id": 1,
+      "description": "Both proposals include an initial geological survey phase that uses sensor-based terrain assessment to identify coal-rich zones.",
+      "proposal_1_section": "Geological Survey Module using terrain sensors",
+      "proposal_2_section": "Preliminary Geological Assessment using terrain profiling sensors"
+    },
+    {
+      "match_id": 2,
+      "description": "Each proposal incorporates a high-level data fusion framework combining multispectral data and LiDAR inputs for reserve estimation.",
+      "proposal_1_section": "Multispectral + LiDAR Fusion Pipeline",
+      "proposal_2_section": "Integrated LiDAR–Multispectral Data Processing Layer"
+    },
+    {
+      "match_id": 3,
+      "description": "Both R&D plans propose autonomous navigation using SLAM algorithms for mapping coal reserve environments.",
+      "proposal_1_section": "Aerial SLAM for Autonomous Exploration",
+      "proposal_2_section": "Ground-Based SLAM Navigation Stack"
+    }
+  ],
+  "Application Novelty Matches": [
+    {
+      "match_id": 1,
+      "shared_application": "Coal reserve volumetric mapping",
+      "proposal_1_approach": "Aerial drone-based photogrammetry",
+      "proposal_2_approach": "Ground rover–mounted high-resolution radar scanning"
+    },
+    {
+      "match_id": 2,
+      "shared_application": "Environmental hazard detection in mining zones",
+      "proposal_1_approach": "Thermal imaging from drone altitude",
+      "proposal_2_approach": "Ground-level gas and air-quality sensors on rover"
+    },
+    {
+      "match_id": 3,
+      "shared_application": "Subsurface structural analysis",
+      "proposal_1_approach": "Drone-deployed magnetometer array",
+      "proposal_2_approach": "Rover-based ground-penetrating radar (GPR)"
+    },
+    {
+      "match_id": 4,
+      "shared_application": "Real-time mapping visualization",
+      "proposal_1_approach": "Cloud-based 3D stitching of aerial imagery",
+      "proposal_2_approach": "Edge-processed point-cloud rendering from rover sensors"
+    }
+  ],
+  "Technical Novelty Matches": [
+    {
+      "match_id": 1,
+      "shared_technical_approach": "Use of advanced SLAM for autonomous navigation",
+      "proposal_1_problem_solved": "Mapping large, inaccessible coal terrains from above",
+      "proposal_2_problem_solved": "Navigating narrow underground or uneven ground paths safely"
+    },
+    {
+      "match_id": 2,
+      "shared_technical_approach": "Machine-learning–based anomaly detection",
+      "proposal_1_problem_solved": "Predicting potential collapse zones using aerial structural patterns",
+      "proposal_2_problem_solved": "Identifying hazardous subsurface formations using rover sensor anomalies"
+    }
+  ]
+}

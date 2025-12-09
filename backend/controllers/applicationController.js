@@ -484,3 +484,84 @@ exports.requestReEvaluation = async (req, res) => {
     });
   }
 };
+
+// @desc    Compare similarity between two applications
+// @route   POST /api/applications/compare-similarity
+// @access  Private
+exports.compareSimilarity = async (req, res) => {
+  try {
+    const { currentApplication, compareApplication } = req.body;
+
+    if (!currentApplication || !compareApplication) {
+      return res.status(400).json({
+        success: false,
+        message: 'Both application numbers are required'
+      });
+    }
+
+    console.log(`🔍 Comparing similarity between ${currentApplication} and ${compareApplication}`);
+
+    const compareSimilarity = require('../Evaluation_Functions/compare_similarity');
+    const result = await compareSimilarity(currentApplication, compareApplication);
+
+    res.status(200).json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('Compare similarity error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error comparing applications',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Get extracted text for an application
+// @route   GET /api/applications/:id/text
+// @access  Private
+exports.getApplicationText = async (req, res) => {
+  try {
+    const application = await Application.findById(req.params.id);
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: 'Application not found'
+      });
+    }
+
+    // Check authorization
+    if (req.user.role === 'applicant' && application.userId.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to view this application text'
+      });
+    }
+
+    // Fetch extracted text
+    const textDoc = await ApplicationText.findOne({ applicationId: req.params.id });
+
+    if (!textDoc) {
+      return res.status(404).json({
+        success: false,
+        message: 'Extracted text not found for this application'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      extractedText: textDoc.extractedText,
+      textLength: textDoc.textLength,
+      pdfFileName: textDoc.pdfFileName
+    });
+  } catch (error) {
+    console.error('Get application text error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching application text',
+      error: error.message
+    });
+  }
+};

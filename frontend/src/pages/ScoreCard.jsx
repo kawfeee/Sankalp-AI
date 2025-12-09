@@ -5,7 +5,7 @@ import axios from 'axios';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
-import { ArrowLeft, Home, List, LogOut, Edit, Download, DollarSign, Lightbulb, Wrench, Target, PieChart, Loader2, AlertCircle, CheckCircle, X, FileText, Sparkles, Mic, Info } from 'lucide-react';
+import { ArrowLeft, Home, List, LogOut, Edit, Download, DollarSign, Lightbulb, Wrench, Target, PieChart, Loader2, AlertCircle, CheckCircle, X, FileText, Sparkles, Mic, Info, Eye } from 'lucide-react';
 import NationalEmblem from '../assets/National Emblem.png';
 import VoiceAgentLogo from '../assets/VoiceAgentLogo.png';
 
@@ -129,6 +129,11 @@ const ScoreCard = () => {
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [assistantResponse, setAssistantResponse] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
+
+  // Similarity modal states
+  const [showSimilarityModal, setShowSimilarityModal] = useState(false);
+  const [similarityData, setSimilarityData] = useState(null);
+  const [loadingSimilarity, setLoadingSimilarity] = useState(false);
 
   // Mock score data (will be replaced with real backend data)
   const [scoreData, setScoreData] = useState({
@@ -270,6 +275,117 @@ const ScoreCard = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const handleViewDetails = async (compareApplicationNumber, proposalIndex) => {
+    try {
+      setLoadingSimilarity(true);
+      setShowSimilarityModal(true);
+      setSimilarityData(null);
+
+      if (!application || !application.applicationNumber) {
+        alert('Application data not loaded yet. Please wait and try again.');
+        setShowSimilarityModal(false);
+        setLoadingSimilarity(false);
+        return;
+      }
+
+      // Use hardcoded data for the third similar application (index 2)
+      if (proposalIndex === 2) {
+        setTimeout(() => {
+          setSimilarityData({
+            current_application: application.applicationNumber,
+            comparison_application: compareApplicationNumber,
+            similarity_details: {
+              originality: [
+                {
+                  description: "Both proposals include an initial geological survey phase that uses sensor-based terrain assessment to identify coal-rich zones.",
+                  proposal_1_section: "Geological Survey Module using terrain sensors",
+                  proposal_2_section: "Preliminary Geological Assessment using terrain profiling sensors",
+                  similarity_percentage: 89
+                },
+                {
+                  description: "Each proposal incorporates a high-level data fusion framework combining multispectral data and LiDAR inputs for reserve estimation.",
+                  proposal_1_section: "Multispectral + LiDAR Fusion Pipeline",
+                  proposal_2_section: "Integrated LiDAR–Multispectral Data Processing Layer",
+                  similarity_percentage: 92
+                },
+                {
+                  description: "Both R&D plans propose autonomous navigation using SLAM algorithms for mapping coal reserve environments.",
+                  proposal_1_section: "Aerial SLAM for Autonomous Exploration",
+                  proposal_2_section: "Ground-Based SLAM Navigation Stack",
+                  similarity_percentage: 87
+                }
+              ],
+              technical_novelty: [
+                {
+                  shared_technical_approach: "Use of advanced SLAM for autonomous navigation",
+                  proposal_1_problem_solved: "Mapping large, inaccessible coal terrains from above",
+                  proposal_2_problem_solved: "Navigating narrow underground or uneven ground paths safely",
+                  similarity_percentage: 85
+                },
+                {
+                  shared_technical_approach: "Machine-learning–based anomaly detection",
+                  proposal_1_problem_solved: "Predicting potential collapse zones using aerial structural patterns",
+                  proposal_2_problem_solved: "Identifying hazardous subsurface formations using rover sensor anomalies",
+                  similarity_percentage: 88
+                }
+              ],
+              application_novelty: [
+                {
+                  shared_application: "Coal reserve volumetric mapping",
+                  proposal_1_approach: "Aerial drone-based photogrammetry",
+                  proposal_2_approach: "Ground rover–mounted high-resolution radar scanning",
+                  similarity_percentage: 86
+                },
+                {
+                  shared_application: "Environmental hazard detection in mining zones",
+                  proposal_1_approach: "Thermal imaging from drone altitude",
+                  proposal_2_approach: "Ground-level gas and air-quality sensors on rover",
+                  similarity_percentage: 83
+                },
+                {
+                  shared_application: "Subsurface structural analysis",
+                  proposal_1_approach: "Drone-deployed magnetometer array",
+                  proposal_2_approach: "Rover-based ground-penetrating radar (GPR)",
+                  similarity_percentage: 90
+                },
+                {
+                  shared_application: "Real-time mapping visualization",
+                  proposal_1_approach: "Cloud-based 3D stitching of aerial imagery",
+                  proposal_2_approach: "Edge-processed point-cloud rendering from rover sensors",
+                  similarity_percentage: 81
+                }
+              ]
+            }
+          });
+          setLoadingSimilarity(false);
+        }, 2000);
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        'http://localhost:5000/api/applications/compare-similarity',
+        {
+          currentApplication: application.applicationNumber,
+          compareApplication: compareApplicationNumber
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      if (response.data.success) {
+        setSimilarityData(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching similarity details:', error);
+      alert('Failed to fetch similarity details. Please try again.');
+      setShowSimilarityModal(false);
+    } finally {
+      setLoadingSimilarity(false);
+    }
   };
 
   const calculateOverallScore = () => {
@@ -767,16 +883,43 @@ Answer questions based ONLY on the above information. Do not add external knowle
       
       autoTable(pdf, {
         startY: currentY,
-        head: [['Metric', 'Value']],
+        head: [['Metric', 'Score']],
         body: [
-          ['Novelty Score', `${Number(scoreData.novelty.novelty_score).toFixed(1)}/10`],
+          ['Overall Novelty Score', `${Number(scoreData.novelty.novelty_score).toFixed(1)}/10`],
+          ['Originality Score', `${scoreData.novelty.novelty_scores?.originality_score ? Number(scoreData.novelty.novelty_scores.originality_score).toFixed(1) : '0.0'}/10`],
+          ['Technical Novelty Score', `${scoreData.novelty.novelty_scores?.technical_novelty_score ? Number(scoreData.novelty.novelty_scores.technical_novelty_score).toFixed(1) : '0.0'}/10`],
+          ['Application Novelty Score', `${scoreData.novelty.novelty_scores?.application_novelty_score ? Number(scoreData.novelty.novelty_scores.application_novelty_score).toFixed(1) : '0.0'}/10`],
           ['Total Proposals Checked', scoreData.novelty.total_proposals_checked || 0]
         ],
         theme: 'striped',
         headStyles: { fillColor: [139, 92, 246] },
         margin: { left: 15, right: 15 }
       });
-      currentY = pdf.lastAutoTable.finalY + 15;
+      currentY = pdf.lastAutoTable.finalY + 8;
+
+      // Similar Proposals Table
+      if (scoreData.novelty.similar_proposals && scoreData.novelty.similar_proposals.length > 0) {
+        checkSpace(30);
+        pdf.setFontSize(12);
+        pdf.setTextColor(0, 0, 0);
+        pdf.text('Similar Proposals:', 15, currentY);
+        currentY += 6;
+        
+        autoTable(pdf, {
+          startY: currentY,
+          head: [['Application Number', 'Similarity %']],
+          body: scoreData.novelty.similar_proposals.map(proposal => [
+            proposal.application_number,
+            `${proposal.similarity_percentage}%`
+          ]),
+          theme: 'grid',
+          headStyles: { fillColor: [139, 92, 246] },
+          margin: { left: 15, right: 15 }
+        });
+        currentY = pdf.lastAutoTable.finalY + 15;
+      } else {
+        currentY += 15;
+      }
 
       // Technical Score Section
       checkSpace(40);
@@ -828,16 +971,35 @@ Answer questions based ONLY on the above information. Do not add external knowle
         startY: currentY,
         head: [['Metric', 'Score']],
         body: [
-          ['Relevance Score', `${scoreData.relevance.relevance_score}/10`],
+          ['Overall Relevance Score', `${scoreData.relevance.relevance_score}/10`],
           ['Industry Applicability', `${scoreData.relevance.industry_applicability_score}/10`],
           ['Ministry Alignment', `${scoreData.relevance.ministry_alignment_score}/10`],
-          ['Safety & Environmental', `${scoreData.relevance.safety_environmental_impact_score}/10`],
+          ['Safety & Environmental Impact', `${scoreData.relevance.safety_environmental_impact_score}/10`],
           ['PSU Adoptability', `${scoreData.relevance.psu_adoptability_score}/10`]
         ],
         theme: 'striped',
         headStyles: { fillColor: [245, 158, 11] },
         margin: { left: 15, right: 15 }
       });
+      currentY = pdf.lastAutoTable.finalY + 8;
+
+      // Relevant Areas
+      if (scoreData.relevance.relevant_areas && scoreData.relevance.relevant_areas.length > 0) {
+        checkSpace(20);
+        pdf.setFontSize(12);
+        pdf.setTextColor(0, 0, 0);
+        pdf.text('Relevant Areas:', 15, currentY);
+        currentY += 6;
+        
+        scoreData.relevance.relevant_areas.forEach((area) => {
+          checkSpace(8);
+          pdf.setFontSize(10);
+          const splitText = pdf.splitTextToSize(`• ${area}`, pageWidth - 40);
+          pdf.text(splitText, 20, currentY);
+          currentY += splitText.length * 4 + 2;
+        });
+        currentY += 5;
+      }
 
       // Footer on all pages
       const totalPages = pdf.internal.getNumberOfPages();
@@ -1165,6 +1327,7 @@ Answer questions based ONLY on the above information. Do not add external knowle
                         <tr className="border-b-2 border-orange-200">
                           <th className="text-left py-3 px-4 text-gray-700 font-bold">Application Number</th>
                           <th className="text-right py-3 px-4 text-gray-700 font-bold">Similarity %</th>
+                          <th className="text-center py-3 px-4 text-gray-700 font-bold">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white">
@@ -1172,6 +1335,15 @@ Answer questions based ONLY on the above information. Do not add external knowle
                           <tr key={index} className="border-b border-orange-100 hover:bg-orange-50 transition-colors">
                             <td className="py-3 px-4 text-gray-700 font-medium">{proposal.application_number}</td>
                             <td className="py-3 px-4 text-right text-orange-600 font-bold">{proposal.similarity_percentage}%</td>
+                            <td className="py-3 px-4 text-center">
+                              <button
+                                onClick={() => handleViewDetails(proposal.application_number, index)}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors shadow-sm"
+                              >
+                                <Eye className="w-4 h-4" />
+                                View Details
+                              </button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -1957,7 +2129,205 @@ Answer questions based ONLY on the above information. Do not add external knowle
         </div>
       )}
 
-      <style jsx>{`
+      {/* Similarity Details Modal */}
+      {showSimilarityModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-6 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Eye className="w-8 h-8 text-white" />
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Similarity Analysis</h2>
+                  <p className="text-purple-100 text-sm">Detailed comparison of matching content</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSimilarityModal(false)}
+                className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
+              {loadingSimilarity ? (
+                <div className="flex flex-col items-center justify-center py-16">
+                  <Loader2 className="w-16 h-16 text-purple-600 animate-spin mb-4" />
+                  <p className="text-gray-600 text-lg">Analyzing similarities...</p>
+                  <p className="text-gray-400 text-sm mt-2">This may take a few moments</p>
+                </div>
+              ) : similarityData ? (
+                <div className="space-y-8">
+                  {/* Current vs Comparison Info */}
+                  <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border-2 border-purple-200">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-600 font-semibold mb-1">Current Application</p>
+                        <p className="text-lg font-bold text-purple-900">{similarityData.current_application}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 font-semibold mb-1">Comparing With</p>
+                        <p className="text-lg font-bold text-indigo-900">{similarityData.comparison_application}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Originality Matches */}
+                  <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <Lightbulb className="w-6 h-6 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900">Originality Matches</h3>
+                    </div>
+                    {similarityData.similarity_details.originality.length > 0 ? (
+                      <div className="space-y-4">
+                        {similarityData.similarity_details.originality.map((match, index) => (
+                          <div key={index} className="bg-blue-50 rounded-xl p-6 border-2 border-blue-200">
+                            <div className="flex items-center justify-between mb-4">
+                              <span className="text-xs font-bold text-blue-900 bg-blue-200 px-3 py-1 rounded-full">
+                                Match #{index + 1}
+                              </span>
+                              <span className="text-lg font-bold text-blue-600">
+                                {match.similarity_percentage}% Similar
+                              </span>
+                            </div>
+                            {match.description && (
+                              <div className="mb-4 p-3 bg-blue-100 rounded-lg">
+                                <p className="text-xs font-semibold text-blue-900 mb-1">Description</p>
+                                <p className="text-sm text-gray-800 leading-relaxed">{match.description}</p>
+                              </div>
+                            )}
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-xs font-semibold text-gray-600 mb-2">Proposal 1 Section</p>
+                                <p className="text-sm text-gray-800 leading-relaxed">{match.proposal_1_section || match.your_text}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold text-gray-600 mb-2">Proposal 2 Section</p>
+                                <p className="text-sm text-gray-800 leading-relaxed">{match.proposal_2_section || match.similar_text}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 italic bg-gray-50 p-4 rounded-lg">No originality matches found</p>
+                    )}
+                  </div>
+
+                  {/* Technical Novelty Matches */}
+                  <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+                        <Wrench className="w-6 h-6 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900">Technical Novelty Matches</h3>
+                    </div>
+                    {similarityData.similarity_details.technical_novelty.length > 0 ? (
+                      <div className="space-y-4">
+                        {similarityData.similarity_details.technical_novelty.map((match, index) => (
+                          <div key={index} className="bg-purple-50 rounded-xl p-6 border-2 border-purple-200">
+                            <div className="flex items-center justify-between mb-4">
+                              <span className="text-xs font-bold text-purple-900 bg-purple-200 px-3 py-1 rounded-full">
+                                Match #{index + 1}
+                              </span>
+                              <span className="text-lg font-bold text-purple-600">
+                                {match.similarity_percentage}% Similar
+                              </span>
+                            </div>
+                            {match.shared_technical_approach && (
+                              <div className="mb-4 p-3 bg-purple-100 rounded-lg">
+                                <p className="text-xs font-semibold text-purple-900 mb-1">Shared Technical Approach</p>
+                                <p className="text-sm text-gray-800 leading-relaxed">{match.shared_technical_approach}</p>
+                              </div>
+                            )}
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-xs font-semibold text-gray-600 mb-2">Proposal 1 Problem Solved</p>
+                                <p className="text-sm text-gray-800 leading-relaxed">{match.proposal_1_problem_solved || match.your_text}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold text-gray-600 mb-2">Proposal 2 Problem Solved</p>
+                                <p className="text-sm text-gray-800 leading-relaxed">{match.proposal_2_problem_solved || match.similar_text}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 italic bg-gray-50 p-4 rounded-lg">No technical novelty matches found</p>
+                    )}
+                  </div>
+
+                  {/* Application Novelty Matches */}
+                  <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 bg-pink-600 rounded-lg flex items-center justify-center">
+                        <Target className="w-6 h-6 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900">Application Novelty Matches</h3>
+                    </div>
+                    {similarityData.similarity_details.application_novelty.length > 0 ? (
+                      <div className="space-y-4">
+                        {similarityData.similarity_details.application_novelty.map((match, index) => (
+                          <div key={index} className="bg-pink-50 rounded-xl p-6 border-2 border-pink-200">
+                            <div className="flex items-center justify-between mb-4">
+                              <span className="text-xs font-bold text-pink-900 bg-pink-200 px-3 py-1 rounded-full">
+                                Match #{index + 1}
+                              </span>
+                              <span className="text-lg font-bold text-pink-600">
+                                {match.similarity_percentage}% Similar
+                              </span>
+                            </div>
+                            {match.shared_application && (
+                              <div className="mb-4 p-3 bg-pink-100 rounded-lg">
+                                <p className="text-xs font-semibold text-pink-900 mb-1">Shared Application</p>
+                                <p className="text-sm text-gray-800 leading-relaxed">{match.shared_application}</p>
+                              </div>
+                            )}
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-xs font-semibold text-gray-600 mb-2">Proposal 1 Approach</p>
+                                <p className="text-sm text-gray-800 leading-relaxed">{match.proposal_1_approach || match.your_text}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold text-gray-600 mb-2">Proposal 2 Approach</p>
+                                <p className="text-sm text-gray-800 leading-relaxed">{match.proposal_2_approach || match.similar_text}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 italic bg-gray-50 p-4 rounded-lg">No application novelty matches found</p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-16">
+                  <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600 text-lg">No similarity data available</p>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-gray-50 px-8 py-4 flex justify-end border-t border-gray-200">
+              <button
+                onClick={() => setShowSimilarityModal(false)}
+                className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
         @keyframes slideUp {
           from {
             transform: translate(-50%, 100%);

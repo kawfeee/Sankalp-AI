@@ -24,7 +24,8 @@
     "react-router-dom": "^7.9.6",
     "react-slick": "^0.31.0",
     "react-step-progress-bar": "^1.0.3",
-    "slick-carousel": "^1.8.1"
+    "slick-carousel": "^1.8.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
