@@ -2160,9 +2160,9 @@ Answer questions based ONLY on the above information. Do not add external knowle
                 </div>
               ) : similarityData ? (
                 <div className="space-y-8">
-                  {/* Current vs Comparison Info */}
+                  {/* Current vs Comparison Info + Overall Metrics */}
                   <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border-2 border-purple-200">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4 mb-6">
                       <div>
                         <p className="text-sm text-gray-600 font-semibold mb-1">Current Application</p>
                         <p className="text-lg font-bold text-purple-900">{similarityData.current_application}</p>
@@ -2172,7 +2172,193 @@ Answer questions based ONLY on the above information. Do not add external knowle
                         <p className="text-lg font-bold text-indigo-900">{similarityData.comparison_application}</p>
                       </div>
                     </div>
+                    
+                    {/* Overall Metrics */}
+                    {similarityData.similarity_percentage !== undefined && (
+                      <div className="grid grid-cols-3 gap-4 pt-4 border-t border-purple-200">
+                        <div className="text-center">
+                          <p className="text-xs text-gray-600 font-semibold mb-2">Overall Similarity</p>
+                          <div className="text-3xl font-bold text-purple-600">{similarityData.similarity_percentage}%</div>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-gray-600 font-semibold mb-2">Technical Novelty</p>
+                          <div className="text-3xl font-bold text-indigo-600">{similarityData.technical_novelty}/10</div>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-gray-600 font-semibold mb-2">Application Novelty</p>
+                          <div className="text-3xl font-bold text-pink-600">{similarityData.application_novelty}/10</div>
+                        </div>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Overall Explanation */}
+                  {similarityData.overall_explanation && (
+                    <div className="bg-amber-50 rounded-xl p-6 border-2 border-amber-200">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center shrink-0">
+                          <FileText className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-gray-900 mb-2">Overall Explanation</h3>
+                          <p className="text-gray-700 leading-relaxed">{similarityData.overall_explanation}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Similarity Reasons */}
+                  {similarityData.similarity_reasons && (
+                    <div className="bg-blue-50 rounded-xl p-6 border-2 border-blue-200">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                          <Lightbulb className="w-6 h-6 text-white" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900">Similarity Reasons</h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        {similarityData.similarity_reasons.sameIdea && (
+                          <div className="bg-white rounded-lg p-4 border border-blue-200">
+                            <div className="flex items-center gap-2 mb-2">
+                              <CheckCircle className="w-5 h-5 text-green-600" />
+                              <p className="font-bold text-gray-900">Same Idea</p>
+                            </div>
+                            <p className="text-sm text-gray-600">{similarityData.similarity_reasons.sameIdeaExplanation}</p>
+                          </div>
+                        )}
+                        {similarityData.similarity_reasons.sameTechnique && (
+                          <div className="bg-white rounded-lg p-4 border border-blue-200">
+                            <div className="flex items-center gap-2 mb-2">
+                              <CheckCircle className="w-5 h-5 text-green-600" />
+                              <p className="font-bold text-gray-900">Same Technique</p>
+                            </div>
+                            <p className="text-sm text-gray-600">{similarityData.similarity_reasons.sameTechniqueExplanation}</p>
+                          </div>
+                        )}
+                        {similarityData.similarity_reasons.sameApplication && (
+                          <div className="bg-white rounded-lg p-4 border border-blue-200">
+                            <div className="flex items-center gap-2 mb-2">
+                              <CheckCircle className="w-5 h-5 text-green-600" />
+                              <p className="font-bold text-gray-900">Same Application</p>
+                            </div>
+                            <p className="text-sm text-gray-600">{similarityData.similarity_reasons.sameApplicationExplanation}</p>
+                          </div>
+                        )}
+                        {similarityData.similarity_reasons.sameProblem && (
+                          <div className="bg-white rounded-lg p-4 border border-blue-200">
+                            <div className="flex items-center gap-2 mb-2">
+                              <CheckCircle className="w-5 h-5 text-green-600" />
+                              <p className="font-bold text-gray-900">Same Problem</p>
+                            </div>
+                            <p className="text-sm text-gray-600">{similarityData.similarity_reasons.sameProblemExplanation}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Matching Details */}
+                  {similarityData.matching_details && (
+                    <div className="bg-green-50 rounded-xl p-6 border-2 border-green-200">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
+                          <Target className="w-6 h-6 text-white" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900">Matching Details</h3>
+                      </div>
+                      <div className="space-y-4">
+                        {similarityData.matching_details.matchedConcepts && similarityData.matching_details.matchedConcepts.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-900 mb-2">Matched Concepts:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {similarityData.matching_details.matchedConcepts.map((concept, idx) => (
+                                <span key={idx} className="px-3 py-1 bg-green-200 text-green-900 rounded-full text-sm font-medium">
+                                  {concept}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {similarityData.matching_details.matchedTechniques && similarityData.matching_details.matchedTechniques.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-900 mb-2">Matched Techniques:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {similarityData.matching_details.matchedTechniques.map((tech, idx) => (
+                                <span key={idx} className="px-3 py-1 bg-purple-200 text-purple-900 rounded-full text-sm font-medium">
+                                  {tech}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {similarityData.matching_details.matchedApplications && similarityData.matching_details.matchedApplications.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-900 mb-2">Matched Applications:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {similarityData.matching_details.matchedApplications.map((app, idx) => (
+                                <span key={idx} className="px-3 py-1 bg-pink-200 text-pink-900 rounded-full text-sm font-medium">
+                                  {app}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {similarityData.matching_details.matchedKeywords && similarityData.matching_details.matchedKeywords.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-gray-900 mb-2">Matched Keywords:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {similarityData.matching_details.matchedKeywords.map((keyword, idx) => (
+                                <span key={idx} className="px-3 py-1 bg-blue-200 text-blue-900 rounded-full text-sm font-medium">
+                                  {keyword}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Text Comparison */}
+                  {similarityData.text_comparison && (similarityData.text_comparison.newProposalMatchingParts?.length > 0 || similarityData.text_comparison.existingProposalMatchingParts?.length > 0) && (
+                    <div className="bg-orange-50 rounded-xl p-6 border-2 border-orange-200">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center">
+                          <FileText className="w-6 h-6 text-white" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900">Text Comparison</h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="font-semibold text-gray-900 mb-3">New Proposal Excerpts:</p>
+                          <div className="space-y-2">
+                            {similarityData.text_comparison.newProposalMatchingParts?.map((text, idx) => (
+                              <div key={idx} className="bg-white rounded-lg p-3 border border-orange-200">
+                                <p className="text-xs text-gray-500 mb-1">Match #{idx + 1}</p>
+                                <p className="text-sm text-gray-700 italic">"{text}"</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 mb-3">Existing Proposal Excerpts:</p>
+                          <div className="space-y-2">
+                            {similarityData.text_comparison.existingProposalMatchingParts?.map((text, idx) => (
+                              <div key={idx} className="bg-white rounded-lg p-3 border border-orange-200">
+                                <p className="text-xs text-gray-500 mb-1">Match #{idx + 1}</p>
+                                <p className="text-sm text-gray-700 italic">"{text}"</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Legacy similarity_details support (for backward compatibility) */}
+                  {similarityData.similarity_details && (similarityData.similarity_details.originality?.length > 0 || similarityData.similarity_details.technical_novelty?.length > 0 || similarityData.similarity_details.application_novelty?.length > 0) && (
+                    <>
+                      <div className="border-t-4 border-gray-300 my-8"></div>
 
                   {/* Originality Matches */}
                   <div>
@@ -2305,6 +2491,8 @@ Answer questions based ONLY on the above information. Do not add external knowle
                       <p className="text-gray-500 italic bg-gray-50 p-4 rounded-lg">No application novelty matches found</p>
                     )}
                   </div>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-16">
