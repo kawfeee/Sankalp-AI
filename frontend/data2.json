@@ -1,0 +1,62 @@
+{
+  "Originality Matches": [
+    {
+      "match_id": 1,
+      "description": "Both proposals propose initial environment reconnaissance using sensor payloads.",
+      "proposal_1_section": "Drone reconnaissance with multispectral scanning",
+      "proposal_2_section": "Crawler reconnaissance with acoustic and seismic sensors"
+    },
+    {
+      "match_id": 2,
+      "description": "Each plan integrates analytics to convert raw signals into usable geological layers.",
+      "proposal_1_section": "Cloud AI module for geology interpretation",
+      "proposal_2_section": "Crawler AI core for deep-bed structure analysis"
+    },
+    {
+      "match_id": 3,
+      "description": "Both include obstacle-aware autonomous navigation routines.",
+      "proposal_1_section": "Drone SLAM for aerial autonomy",
+      "proposal_2_section": "Crawler SLAM for confined-space autonomy"
+    }
+  ],
+  "Application Novelty Matches": [
+    {
+      "match_id": 1,
+      "shared_application": "Coal seam detection",
+      "proposal_1_approach": "Aerial multispectral imaging",
+      "proposal_2_approach": "Seismic reflection mapping"
+    },
+    {
+      "match_id": 2,
+      "shared_application": "Structural anomaly detection",
+      "proposal_1_approach": "Thermal anomaly scanning",
+      "proposal_2_approach": "Underground vibration signature analysis"
+    },
+    {
+      "match_id": 3,
+      "shared_application": "Subsurface mapping",
+      "proposal_1_approach": "Drone magnetometer array",
+      "proposal_2_approach": "Crawler acoustic tomography"
+    },
+    {
+      "match_id": 4,
+      "shared_application": "Safety risk evaluation",
+      "proposal_1_approach": "Aerial hazard heatmaps",
+      "proposal_2_approach": "Cavity stability scoring from seismic echoes"
+    }
+  ],
+  "Technical Novelty Matches": [
+    {
+      "match_id": 1,
+      "shared_technical_approach": "SLAM-based autonomous route planning",
+      "proposal_1_problem_solved": "Covering wide terrain quickly from the air",
+      "proposal_2_problem_solved": "Navigating complex, confined underground passages"
+    },
+    {
+      "match_id": 2,
+      "shared_technical_approach": "Machine learning for anomaly classification",
+      "proposal_1_problem_solved": "Identifying collapse zones from aerial patterns",
+      "proposal_2_problem_solved": "Classifying tunnel instabilities from acoustic data"
+    }
+  ]
+}

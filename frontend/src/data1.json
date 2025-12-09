@@ -1,0 +1,62 @@
+{
+  "Originality Matches": [
+    {
+      "match_id": 1,
+      "description": "Both proposals include initial remote sensing surveys using multispectral sensors.",
+      "proposal_1_section": "Drone-based multispectral scanning of coal seams",
+      "proposal_2_section": "Swarm multispectral sensing using synchronized drones"
+    },
+    {
+      "match_id": 2,
+      "description": "Each includes a centralized data analysis platform that integrates environmental and geological datasets.",
+      "proposal_1_section": "Integrated analytics cloud for terrain + thermal data",
+      "proposal_2_section": "Swarm Data Hub for environmental and geological fusion"
+    },
+    {
+      "match_id": 3,
+      "description": "Both employ automated mapping through AI-driven interpretation.",
+      "proposal_1_section": "AI-based 3D coal reserve estimation",
+      "proposal_2_section": "AI-assisted swarm reconstruction of terrain layers"
+    }
+  ],
+  "Application Novelty Matches": [
+    {
+      "match_id": 1,
+      "shared_application": "Coal terrain mapping",
+      "proposal_1_approach": "Single-drone photogrammetry",
+      "proposal_2_approach": "Distributed swarm photogrammetry"
+    },
+    {
+      "match_id": 2,
+      "shared_application": "Hazard hotspot prediction",
+      "proposal_1_approach": "Thermal anomaly detection via aerial sensors",
+      "proposal_2_approach": "Swarm-deployed micro thermal probes"
+    },
+    {
+      "match_id": 3,
+      "shared_application": "Resource estimation",
+      "proposal_1_approach": "LiDAR-inferred volumetric prediction",
+      "proposal_2_approach": "Collaborative drone triangulation"
+    },
+    {
+      "match_id": 4,
+      "shared_application": "Site surveillance",
+      "proposal_1_approach": "Single-drone high-altitude overview",
+      "proposal_2_approach": "Multi-angle swarm coverage"
+    }
+  ],
+  "Technical Novelty Matches": [
+    {
+      "match_id": 1,
+      "shared_technical_approach": "Neural network–based object detection",
+      "proposal_1_problem_solved": "Identifying coal outcrops from aerial images",
+      "proposal_2_problem_solved": "Coordinating swarm avoidance and environmental detection"
+    },
+    {
+      "match_id": 2,
+      "shared_technical_approach": "LiDAR-driven terrain modelling",
+      "proposal_1_problem_solved": "Generating 3D terrain maps for exploration planning",
+      "proposal_2_problem_solved": "Synchronizing distributed LiDAR inputs across swarms"
+    }
+  ]
+}

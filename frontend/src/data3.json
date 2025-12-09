@@ -1,0 +1,62 @@
+{
+  "Originality Matches": [
+    {
+      "match_id": 1,
+      "description": "Both proposals include multispectral sensing pipelines for geological surveying.",
+      "proposal_1_section": "Drone multispectral cameras",
+      "proposal_2_section": "Satellite multispectral imaging arrays"
+    },
+    {
+      "match_id": 2,
+      "description": "Each system uses cloud-based analytics for terrain reconstruction.",
+      "proposal_1_section": "Aerial data cloud analytics",
+      "proposal_2_section": "Satellite terrain cloud processor"
+    },
+    {
+      "match_id": 3,
+      "description": "Both incorporate predictive modeling for coal deposit estimation.",
+      "proposal_1_section": "AI forecasting from aerial datasets",
+      "proposal_2_section": "Geo-AI forecasting from orbital datasets"
+    }
+  ],
+  "Application Novelty Matches": [
+    {
+      "match_id": 1,
+      "shared_application": "Large-scale coal field mapping",
+      "proposal_1_approach": "Low-altitude drone scanning",
+      "proposal_2_approach": "High-orbit satellite macro-scanning"
+    },
+    {
+      "match_id": 2,
+      "shared_application": "Environmental compliance monitoring",
+      "proposal_1_approach": "Thermal hazard detection via drones",
+      "proposal_2_approach": "Orbital CO₂ leakage spectrometry"
+    },
+    {
+      "match_id": 3,
+      "shared_application": "Resource forecasting",
+      "proposal_1_approach": "Localized aerial-based predictions",
+      "proposal_2_approach": "Regional satellite macro-prediction models"
+    },
+    {
+      "match_id": 4,
+      "shared_application": "Topographic reconstruction",
+      "proposal_1_approach": "LiDAR + photogrammetry fusion",
+      "proposal_2_approach": "Satellite altimetry + radar fusion"
+    }
+  ],
+  "Technical Novelty Matches": [
+    {
+      "match_id": 1,
+      "shared_technical_approach": "AI-driven interpretation of multispectral bands",
+      "proposal_1_problem_solved": "Spotting near-surface coal inconsistencies",
+      "proposal_2_problem_solved": "Assessing macro-level geological trends"
+    },
+    {
+      "match_id": 2,
+      "shared_technical_approach": "Cloud-based geo-analytics layers",
+      "proposal_1_problem_solved": "Rapid on-site analysis for exploration teams",
+      "proposal_2_problem_solved": "Regional policy-level mapping insights"
+    }
+  ]
+}

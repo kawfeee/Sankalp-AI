@@ -170,7 +170,11 @@ const AllApplications = () => {
       filtered = filtered.filter(app => 
         app.applicationNumber.toLowerCase().includes(query) ||
         app.projectTitle.toLowerCase().includes(query) ||
-        app.institutionName.toLowerCase().includes(query)
+        app.institutionName.toLowerCase().includes(query) ||
+        (app.city && app.city.toLowerCase().includes(query)) ||
+        (app.state && app.state.toLowerCase().includes(query)) ||
+        (app.userId?.name && app.userId.name.toLowerCase().includes(query)) ||
+        (app.applicantName && app.applicantName.toLowerCase().includes(query))
       );
     }
 
@@ -547,7 +551,7 @@ const AllApplications = () => {
               </label>
               <input
                 type="text"
-                placeholder="Application # or Title..."
+                placeholder="Search by App#, Title, College, City, State, Name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"

@@ -290,8 +290,115 @@ const ScoreCard = () => {
         return;
       }
 
-      // Use hardcoded data for the third similar application (index 2)
+      // Use hardcoded data for different proposal indices
+      if (proposalIndex === 0) {
+        // data1.json - First proposal
+        setTimeout(() => {
+          setSimilarityData({
+            current_application: application.applicationNumber,
+            comparison_application: compareApplicationNumber,
+            similarity_details: {
+              originality: [
+                {
+                  description: "Both proposals focus on AI-driven predictive maintenance systems for industrial equipment monitoring.",
+                  proposal_1_section: "AI-based Predictive Analytics Module",
+                  proposal_2_section: "Machine Learning Predictive Maintenance Framework",
+                  similarity_percentage: 91
+                },
+                {
+                  description: "Each proposal utilizes IoT sensor networks for real-time data collection from machinery.",
+                  proposal_1_section: "IoT Sensor Integration Layer",
+                  proposal_2_section: "Wireless Sensor Network for Equipment Monitoring",
+                  similarity_percentage: 88
+                }
+              ],
+              technical_novelty: [
+                {
+                  shared_technical_approach: "Deep learning for anomaly detection",
+                  proposal_1_problem_solved: "Identifying equipment failures before they occur using neural networks",
+                  proposal_2_problem_solved: "Detecting abnormal patterns in machinery behavior using CNN models",
+                  similarity_percentage: 86
+                }
+              ],
+              application_novelty: [
+                {
+                  shared_application: "Industrial equipment health monitoring",
+                  proposal_1_approach: "Cloud-based analytics dashboard with mobile alerts",
+                  proposal_2_approach: "Edge computing solution with local processing",
+                  similarity_percentage: 84
+                },
+                {
+                  shared_application: "Maintenance scheduling optimization",
+                  proposal_1_approach: "AI-powered scheduling recommendations",
+                  proposal_2_approach: "Rule-based automated scheduling system",
+                  similarity_percentage: 79
+                }
+              ]
+            }
+          });
+          setLoadingSimilarity(false);
+        }, 2000);
+        return;
+      }
+
+      if (proposalIndex === 1) {
+        // data2.json - Second proposal
+        setTimeout(() => {
+          setSimilarityData({
+            current_application: application.applicationNumber,
+            comparison_application: compareApplicationNumber,
+            similarity_details: {
+              originality: [
+                {
+                  description: "Both proposals implement blockchain-based supply chain tracking for transparency and traceability.",
+                  proposal_1_section: "Blockchain Ledger for Supply Chain",
+                  proposal_2_section: "Distributed Ledger Technology for Logistics",
+                  similarity_percentage: 93
+                },
+                {
+                  description: "Each proposal uses smart contracts for automated verification and validation processes.",
+                  proposal_1_section: "Smart Contract Automation Layer",
+                  proposal_2_section: "Self-Executing Contract Framework",
+                  similarity_percentage: 90
+                }
+              ],
+              technical_novelty: [
+                {
+                  shared_technical_approach: "Consensus mechanism for transaction validation",
+                  proposal_1_problem_solved: "Ensuring data integrity across multiple stakeholders",
+                  proposal_2_problem_solved: "Preventing fraudulent entries in supply chain records",
+                  similarity_percentage: 87
+                },
+                {
+                  shared_technical_approach: "Integration with existing ERP systems",
+                  proposal_1_problem_solved: "Seamless data flow between legacy and blockchain systems",
+                  proposal_2_problem_solved: "Real-time synchronization with enterprise databases",
+                  similarity_percentage: 82
+                }
+              ],
+              application_novelty: [
+                {
+                  shared_application: "Product authenticity verification",
+                  proposal_1_approach: "QR code scanning with blockchain verification",
+                  proposal_2_approach: "RFID tags linked to distributed ledger",
+                  similarity_percentage: 85
+                },
+                {
+                  shared_application: "Multi-party logistics coordination",
+                  proposal_1_approach: "Permissioned blockchain with role-based access",
+                  proposal_2_approach: "Hybrid public-private chain architecture",
+                  similarity_percentage: 88
+                }
+              ]
+            }
+          });
+          setLoadingSimilarity(false);
+        }, 2000);
+        return;
+      }
+
       if (proposalIndex === 2) {
+        // data.json - Third proposal (original)
         setTimeout(() => {
           setSimilarityData({
             current_application: application.applicationNumber,
@@ -355,6 +462,68 @@ const ScoreCard = () => {
                   proposal_1_approach: "Cloud-based 3D stitching of aerial imagery",
                   proposal_2_approach: "Edge-processed point-cloud rendering from rover sensors",
                   similarity_percentage: 81
+                }
+              ]
+            }
+          });
+          setLoadingSimilarity(false);
+        }, 2000);
+        return;
+      }
+
+      if (proposalIndex === 3) {
+        // data3.json - Fourth proposal
+        setTimeout(() => {
+          setSimilarityData({
+            current_application: application.applicationNumber,
+            comparison_application: compareApplicationNumber,
+            similarity_details: {
+              originality: [
+                {
+                  description: "Both proposals develop renewable energy management systems using AI for grid optimization.",
+                  proposal_1_section: "AI-Powered Energy Distribution Network",
+                  proposal_2_section: "Smart Grid Management with ML Algorithms",
+                  similarity_percentage: 94
+                },
+                {
+                  description: "Each proposal implements demand forecasting models to balance energy supply and consumption.",
+                  proposal_1_section: "Time-Series Forecasting Module",
+                  proposal_2_section: "Predictive Load Analysis System",
+                  similarity_percentage: 89
+                }
+              ],
+              technical_novelty: [
+                {
+                  shared_technical_approach: "Reinforcement learning for dynamic load balancing",
+                  proposal_1_problem_solved: "Optimizing energy distribution across multiple renewable sources",
+                  proposal_2_problem_solved: "Minimizing grid instability during peak demand periods",
+                  similarity_percentage: 91
+                },
+                {
+                  shared_technical_approach: "Real-time data processing from smart meters",
+                  proposal_1_problem_solved: "Processing millions of meter readings per second",
+                  proposal_2_problem_solved: "Aggregating distributed sensor data for grid insights",
+                  similarity_percentage: 86
+                }
+              ],
+              application_novelty: [
+                {
+                  shared_application: "Integration with solar and wind power sources",
+                  proposal_1_approach: "Unified API for renewable energy sources",
+                  proposal_2_approach: "Microservices architecture for source management",
+                  similarity_percentage: 83
+                },
+                {
+                  shared_application: "Consumer energy usage analytics",
+                  proposal_1_approach: "Mobile app with personalized recommendations",
+                  proposal_2_approach: "Web portal with comparative analytics",
+                  similarity_percentage: 80
+                },
+                {
+                  shared_application: "Battery storage optimization",
+                  proposal_1_approach: "AI-driven charge/discharge scheduling",
+                  proposal_2_approach: "Heuristic-based battery management system",
+                  similarity_percentage: 87
                 }
               ]
             }
