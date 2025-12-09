@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { ArrowLeft, Building2, MapPin, Home, Mail, CreditCard, Calendar, FileText, Download, ExternalLink, Loader2, CheckCircle, XCircle, Clock, AlertCircle, LogOut, List, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Building2, MapPin, Home, Mail, CreditCard, Calendar, FileText, Download, ExternalLink, Loader2, CheckCircle, XCircle, Clock, AlertCircle, LogOut, List, ChevronDown, ChevronUp, ClipboardList } from 'lucide-react';
 import NationalEmblem from '../assets/National Emblem.png';
 import ReactMarkdown from 'react-markdown';
 
@@ -354,7 +354,7 @@ const EvaluatorApplicationDetails = () => {
                 Application #{application.applicationNumber}
               </p>
             </div>
-            <div>
+            <div className="flex flex-col items-end gap-3">
               <span className={`px-6 py-3 rounded-xl text-base font-bold flex items-center gap-2 shadow-md ${getStatusColor(application.status)}`}>
                 {application.status === 'approved' && <CheckCircle className="w-5 h-5" />}
                 {application.status === 'rejected' && <XCircle className="w-5 h-5" />}
@@ -362,6 +362,13 @@ const EvaluatorApplicationDetails = () => {
                 {application.status === 'pending' && <AlertCircle className="w-5 h-5" />}
                 {application.status.toUpperCase()}
               </span>
+              <button
+                onClick={() => navigate(`/evaluator/scorecard/${application._id}`)}
+                className="px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-all shadow-md flex items-center gap-2"
+              >
+                <ClipboardList className="w-5 h-5" />
+                View Score Card
+              </button>
             </div>
           </div>
         </div>
